@@ -1,0 +1,51 @@
+import Link from "next/link";
+
+interface MedicalShopFiltersProps {
+  city?: string;
+  state?: string;
+  area?: string;
+}
+
+export function MedicalShopFilters({ city = "", state = "", area = "" }: MedicalShopFiltersProps) {
+  return (
+    <div className="rounded-[28px] border border-[var(--border)] bg-white/90 p-5 shadow-sm">
+      <form className="grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_auto]">
+        <input
+          name="city"
+          defaultValue={city}
+          placeholder="Filter by city"
+          className="w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--primary)]"
+        />
+
+        <input
+          name="state"
+          defaultValue={state}
+          placeholder="Filter by state"
+          className="w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--primary)]"
+        />
+
+        <input
+          name="area"
+          defaultValue={area}
+          placeholder="Filter by area"
+          className="w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--primary)]"
+        />
+
+        <div className="flex gap-3">
+          <button
+            type="submit"
+            className="inline-flex flex-1 items-center justify-center rounded-full bg-[var(--primary)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--primary-strong)]"
+          >
+            Apply
+          </button>
+          <Link
+            href="/medical-shops"
+            className="inline-flex items-center justify-center rounded-full border border-[var(--border)] px-5 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)]"
+          >
+            Reset
+          </Link>
+        </div>
+      </form>
+    </div>
+  );
+}

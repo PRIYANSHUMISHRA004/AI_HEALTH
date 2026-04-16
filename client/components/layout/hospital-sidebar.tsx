@@ -1,13 +1,21 @@
-import { Activity, Building2, ClipboardPlus, Package, Truck } from "lucide-react";
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Activity, Building2, CalendarClock, ClipboardPlus, Package, ShieldAlert, Truck } from "lucide-react";
 
 const navItems = [
-  { label: "Overview", icon: Activity },
-  { label: "Doctors", icon: ClipboardPlus },
-  { label: "Equipment", icon: Package },
-  { label: "Ambulances", icon: Truck },
-];
+  { label: "Dashboard", href: "/hospital/dashboard", icon: Activity },
+  { label: "Doctors", href: "/hospital", icon: ClipboardPlus },
+  { label: "Equipment", href: "/hospital/equipment", icon: Package },
+  { label: "Ambulances", href: "/hospital/ambulances", icon: Truck },
+  { label: "Appointments", href: "/hospital", icon: CalendarClock },
+  { label: "Issues", href: "/hospital", icon: ShieldAlert },
+] as const;
 
 export function HospitalSidebar() {
+  const pathname = usePathname();
+
   return (
     <aside className="rounded-[32px] border border-[var(--border)] bg-[rgba(10,32,28,0.95)] p-6 text-white shadow-[var(--shadow)]">
       <div className="flex items-center gap-3">
@@ -23,15 +31,21 @@ export function HospitalSidebar() {
       <div className="mt-10 space-y-2">
         {navItems.map((item) => {
           const Icon = item.icon;
+          const isActive = pathname === item.href;
 
           return (
-            <div
+            <Link
               key={item.label}
-              className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/86"
+              href={item.href}
+              className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm transition ${
+                isActive
+                  ? "border-teal-300/40 bg-teal-400/15 text-white"
+                  : "border-white/10 bg-white/5 text-white/86 hover:border-white/20 hover:bg-white/8"
+              }`}
             >
               <Icon className="h-4 w-4 text-teal-300" />
               <span>{item.label}</span>
-            </div>
+            </Link>
           );
         })}
       </div>

@@ -1,1 +1,10 @@
-export {};
+export * from "@/services/auth.service";
+export * from "@/services/ambulance.service";
+export * from "@/services/appointment.service";
+export * from "@/services/doctor.service";
+export * from "@/services/dashboard.service";
+export * from "@/services/equipment.service";
+export * from "@/services/hospital.service";
+export * from "@/services/issue.service";
+export * from "@/services/medical-shop.service";
+export * from "@/services/review.service";

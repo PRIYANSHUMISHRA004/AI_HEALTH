@@ -3,6 +3,8 @@ import { HeartPulse, Stethoscope } from "lucide-react";
 const links = [
   { href: "#platform-overview", label: "Platform" },
   { href: "/hospital", label: "Hospital" },
+  { href: "/login", label: "Login" },
+  { href: "/register", label: "Register" },
 ];
 
 export function PublicNavbar() {
@@ -28,11 +30,11 @@ export function PublicNavbar() {
         </nav>
 
         <a
-          href="/hospital"
+          href="/login"
           className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white/80 px-4 py-2 text-sm font-semibold text-[var(--foreground)] backdrop-blur transition hover:border-[var(--primary)]"
         >
           <Stethoscope className="h-4 w-4 text-[var(--primary)]" />
-          Hospital login
+          Sign in
         </a>
       </div>
     </header>
