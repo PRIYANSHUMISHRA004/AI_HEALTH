@@ -27,7 +27,7 @@ export function CtaBanner() {
           </Link>
           <Link
             href="/hospital/dashboard"
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[var(--primary-strong)]"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--border)] bg-white px-6 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
           >
             Hospital Dashboard
             <ArrowRight className="h-4 w-4" />

@@ -23,11 +23,11 @@ const aiItems = [
 export function AiHighlight() {
   return (
     <FadeIn>
-      <div className="rounded-[32px] border border-[var(--border)] bg-[linear-gradient(135deg,rgba(10,32,28,0.98),rgba(15,118,110,0.95))] p-8 text-white shadow-[var(--shadow)]">
+      <div className="rounded-[32px] border border-[var(--border)] bg-white p-8 shadow-sm">
         <div className="max-w-2xl">
-          <p className="text-sm font-medium uppercase tracking-[0.24em] text-teal-200">AI features highlight</p>
-          <h3 className="mt-4 text-3xl font-semibold tracking-tight">Helpful AI where it matters most</h3>
-          <p className="mt-4 text-sm leading-8 text-white/78">
+          <p className="text-sm font-medium uppercase tracking-[0.24em] text-[var(--primary)]">AI features highlight</p>
+          <h3 className="mt-4 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Helpful AI where it matters most</h3>
+          <p className="mt-4 text-sm leading-8 text-[var(--muted)]">
             The platform uses AI to improve discovery, summarization, and assistance, but the product
             remains usable even if AI services are unavailable during the hackathon demo.
           </p>
@@ -38,12 +38,12 @@ export function AiHighlight() {
             const Icon = item.icon;
 
             return (
-              <div key={item.title} className="rounded-[24px] border border-white/10 bg-white/8 p-5">
-                <div className="inline-flex rounded-2xl bg-white/10 p-3 text-teal-200">
+              <div key={item.title} className="rounded-[24px] border border-[var(--border)] bg-[var(--background)] p-5">
+                <div className="inline-flex rounded-2xl bg-[var(--primary-soft)] p-3 text-[var(--primary)]">
                   <Icon className="h-5 w-5" />
                 </div>
-                <h4 className="mt-4 text-lg font-semibold">{item.title}</h4>
-                <p className="mt-2 text-sm leading-7 text-white/72">{item.description}</p>
+                <h4 className="mt-4 text-lg font-semibold text-[var(--foreground)]">{item.title}</h4>
+                <p className="mt-2 text-sm leading-7 text-[var(--muted)]">{item.description}</p>
               </div>
             );
           })}

@@ -39,7 +39,7 @@ export default function RegisterPage() {
     if (!isHydrated || !isAuthenticated) return;
     syncCurrentUser().then((user) => {
       if (user) {
-        router.replace(user.role === "patient" ? "/" : "/hospital");
+        router.replace(user.role === "patient" ? "/patient/feed" : "/hospital");
       }
     });
   }, [isAuthenticated, isHydrated, router, syncCurrentUser]);
@@ -56,7 +56,7 @@ export default function RegisterPage() {
       const result = await run(() => authService.register(payload));
       setSession(result);
       toast.success("Account created", "Your new account is ready to use.");
-      router.push(form.role === "patient" ? "/" : "/hospital");
+      router.push(form.role === "patient" ? "/patient/feed" : "/hospital");
     } catch (submitError) {
       toast.error("Registration failed", getErrorMessage(submitError, "Please review the form and try again."));
     }
@@ -158,7 +158,7 @@ export default function RegisterPage() {
         {form.role !== "patient" ? (
           <div className="sm:col-span-2">
             <label className="mb-2 block text-sm font-medium text-[var(--foreground)]" htmlFor="linkedHospitalId">
-              Linked hospital ID
+              Linked hospital ID <span className="font-normal text-[var(--muted)]">(optional)</span>
             </label>
             <input
               id="linkedHospitalId"
@@ -167,8 +167,9 @@ export default function RegisterPage() {
                 setForm((current) => ({ ...current, linkedHospitalId: event.target.value }))
               }
               className="w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 outline-none transition focus:border-[var(--primary)]"
-              placeholder="Optional for patient, useful for hospital-side users"
+              placeholder="MongoDB ObjectId of the hospital (e.g. 507f1f77bcf86cd799439011)"
             />
+            <p className="mt-1.5 text-xs text-[var(--muted)]">Leave blank if you don&apos;t have a hospital ID yet. You can link one later.</p>
           </div>
         ) : null}
 

@@ -44,7 +44,7 @@ export function FeaturesGrid() {
         return (
           <FadeIn key={item.title} delay={index * 0.05}>
             <article className="h-full rounded-[28px] border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm backdrop-blur">
-              <div className="mb-5 inline-flex rounded-2xl bg-[var(--accent-soft)] p-3 text-[var(--accent)]">
+              <div className="mb-5 inline-flex rounded-2xl bg-[var(--primary-soft)] p-3 text-[var(--primary)]">
                 <Icon className="h-5 w-5" />
               </div>
               <h3 className="text-xl font-semibold text-[var(--foreground)]">{item.title}</h3>

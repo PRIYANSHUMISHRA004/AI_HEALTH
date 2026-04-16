@@ -7,20 +7,12 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks";
 import { EmergencyLauncher } from "@/components/emergency/emergency-launcher";
 import { NotificationBell } from "@/components/notifications/notification-bell";
-import { GlobalSearch } from "@/components/search/global-search";
 
 interface NavLink { href: string; label: string }
 
-const publicLinks: NavLink[] = [
-  { href: "#platform-overview", label: "Platform" },
-  { href: "/hospitals", label: "Hospitals" },
-  { href: "/map", label: "Map" },
-];
+const publicLinks: NavLink[] = [];
 
-const guestLinks: NavLink[] = [
-  { href: "/login", label: "Login" },
-  { href: "/register", label: "Register" },
-];
+const guestLinks: NavLink[] = [];
 
 const patientAuthLinks: NavLink[] = [
   { href: "/patient/feed", label: "My Feed" },
@@ -67,14 +59,10 @@ export function PublicNavbar() {
               <HeartPulse className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-base font-semibold tracking-tight text-[var(--foreground)]">CareBridge AI</p>
+              <p className="text-base font-semibold tracking-tight text-[var(--foreground)]">Swastha Setu</p>
               <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted)]">Hospital coordination</p>
             </div>
           </a>
-
-          <div className="order-3 w-full lg:order-none lg:flex-1 lg:px-4">
-            <GlobalSearch />
-          </div>
 
           <nav className="hidden items-center gap-7 xl:flex">
             {navLinks.map((link) => (
@@ -90,10 +78,10 @@ export function PublicNavbar() {
 
           <div className="ml-auto flex items-center gap-3">
             <EmergencyLauncher compact />
-            <NotificationBell />
 
             {isHydrated && isAuthenticated ? (
               <div className="hidden items-center gap-2 md:flex">
+                <NotificationBell />
                 <a
                   href={user?.role === "patient" ? "/patient/feed" : "/hospital"}
                   className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)]"
@@ -111,13 +99,21 @@ export function PublicNavbar() {
                 </button>
               </div>
             ) : (
-              <a
-                href="/login"
-                className="hidden items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] md:inline-flex"
-              >
-                <Stethoscope className="h-4 w-4 text-[var(--primary)]" />
-                Sign in
-              </a>
+              <div className="hidden items-center gap-2 md:flex">
+                <a
+                  href="/login"
+                  className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                >
+                  <Stethoscope className="h-4 w-4 text-[var(--primary)]" />
+                  Sign in
+                </a>
+                <a
+                  href="/register"
+                  className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                >
+                  Register
+                </a>
+              </div>
             )}
 
             <button
@@ -133,9 +129,6 @@ export function PublicNavbar() {
 
         {isMenuOpen ? (
           <div className="border-t border-[var(--border)] px-6 py-4 md:hidden">
-            <div className="mb-4">
-              <GlobalSearch compact />
-            </div>
             <div className="mb-4">
               <EmergencyLauncher compact />
             </div>
@@ -158,7 +151,24 @@ export function PublicNavbar() {
                 >
                   Logout
                 </button>
-              ) : null}
+              ) : (
+                <div className="flex flex-col gap-2 pt-1">
+                  <a
+                    href="/login"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="rounded-2xl border border-[var(--border)] px-3 py-2 text-center text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                  >
+                    Sign in
+                  </a>
+                  <a
+                    href="/register"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="rounded-2xl border border-[var(--border)] px-3 py-2 text-center text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)]"
+                  >
+                    Register
+                  </a>
+                </div>
+              )}
             </nav>
           </div>
         ) : null}
