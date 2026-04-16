@@ -5,14 +5,14 @@ import { LoaderCircle, PlusSquare } from "lucide-react";
 
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { IssueAttachmentPreviews } from "@/components/issues/issue-attachment-previews";
+import type { LocalMediaPreview } from "@/components/media/media-thumbnail-grid";
 import { useAsyncTask, useAuth, useToast } from "@/hooks";
 import { getErrorMessage } from "@/lib/utils";
 import { hospitalService, issueService } from "@/services";
 import type { Hospital, Issue } from "@/types";
 
-interface AttachmentPreview {
+interface AttachmentPreview extends LocalMediaPreview {
   file: File;
-  previewUrl: string;
 }
 
 export function IssueForm() {
@@ -29,6 +29,11 @@ export function IssueForm() {
   const [hospitalsLoading, setHospitalsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [attachmentPreviews, setAttachmentPreviews] = useState<AttachmentPreview[]>([]);
+  const [optimisticIssue, setOptimisticIssue] = useState<{
+    title: string;
+    status: string;
+    pending: boolean;
+  } | null>(null);
 
   const [form, setForm] = useState({
     title: "",
@@ -80,15 +85,31 @@ export function IssueForm() {
   }, []);
 
   useEffect(() => {
-    const previews = form.attachments.map((file) => ({
+    const previews: AttachmentPreview[] = form.attachments.map((file) => ({
+      id: `${file.name}-${file.lastModified}`,
       file,
-      previewUrl: URL.createObjectURL(file),
+      name: file.name,
+      url: URL.createObjectURL(file),
+      kind: file.type.startsWith("image/")
+        ? "image"
+        : file.type.startsWith("video/")
+          ? "video"
+          : "file",
+      sizeLabel: `${Math.ceil(file.size / 1024)} KB`,
+      note:
+        file.type.startsWith("image/") || file.type.startsWith("video/")
+          ? undefined
+          : "This file type cannot be previewed inline",
     }));
 
     setAttachmentPreviews(previews);
 
     return () => {
-      previews.forEach((preview) => URL.revokeObjectURL(preview.previewUrl));
+      previews.forEach((preview) => {
+        if (preview.url) {
+          URL.revokeObjectURL(preview.url);
+        }
+      });
     };
   }, [form.attachments]);
 
@@ -105,6 +126,13 @@ export function IssueForm() {
     }
 
     try {
+      const nextOptimisticIssue = {
+        title: form.title.trim(),
+        status: "open",
+        pending: true,
+      };
+      setOptimisticIssue(nextOptimisticIssue);
+
       const issue = await runCreateIssue(() =>
         issueService.create(
           {
@@ -119,6 +147,12 @@ export function IssueForm() {
         ),
       );
 
+      setOptimisticIssue({
+        title: issue.title,
+        status: issue.status,
+        pending: false,
+      });
+
       setForm((current) => ({
         ...current,
         title: "",
@@ -128,6 +162,7 @@ export function IssueForm() {
 
       toast.success("Issue submitted", `Issue created with status ${issue.status}.`);
     } catch (submitError) {
+      setOptimisticIssue(null);
       toast.error("Issue submission failed", getErrorMessage(submitError, "Please try again."));
     }
   };
@@ -280,9 +315,18 @@ export function IssueForm() {
 
                 {loadError ? <p className="text-sm text-red-600">{loadError}</p> : null}
                 {submitError ? <p className="text-sm text-red-600">{submitError}</p> : null}
-                {createdIssue ? (
+                {optimisticIssue ? (
                   <div className="rounded-[24px] border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-700">
-                    Issue created successfully with status <span className="font-semibold">{createdIssue.status}</span>.
+                    {optimisticIssue.pending ? (
+                      <>
+                        Issue <span className="font-semibold">"{optimisticIssue.title}"</span> is being submitted.
+                      </>
+                    ) : (
+                      <>
+                        Issue created successfully with status{" "}
+                        <span className="font-semibold">{optimisticIssue.status}</span>.
+                      </>
+                    )}
                   </div>
                 ) : null}
 

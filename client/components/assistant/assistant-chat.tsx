@@ -64,7 +64,7 @@ export function AssistantChat({ initialContext = "" }: AssistantChatProps) {
         {
           id: `assistant-${Date.now()}`,
           role: "assistant",
-          content: response.response.trim(),
+          content: response.reply.trim(),
         },
       ]);
     } catch (error) {

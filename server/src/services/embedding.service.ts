@@ -95,10 +95,6 @@ export const embed = async (text: string): Promise<number[]> => {
     return [];
   }
 
-  if (!env.hfApiKey) {
-    throw new HttpError(500, "HF_API_KEY is not configured");
-  }
-
   const model = env.hfEmbeddingModel;
   const url = `${HF_API_URL}/${encodeURIComponent(model)}`;
 

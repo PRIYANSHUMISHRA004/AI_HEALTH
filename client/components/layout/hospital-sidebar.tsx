@@ -19,18 +19,18 @@ export function HospitalSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="rounded-[32px] border border-white/8 bg-[linear-gradient(180deg,rgba(10,32,28,0.98),rgba(10,32,28,0.94))] p-6 text-white shadow-[var(--shadow)]">
+    <aside className="rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(10,32,28,0.98),rgba(10,32,28,0.94))] p-4 text-white shadow-[var(--shadow)] sm:p-5 xl:sticky xl:top-6 xl:h-[calc(100vh-3rem)] xl:rounded-[32px] xl:p-6">
       <div className="flex items-center gap-3">
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10">
           <Building2 className="h-5 w-5" />
         </div>
         <div>
-          <p className="text-lg font-semibold">Hospital Portal</p>
-          <p className="text-sm text-white/70">Operations workspace</p>
+          <p className="text-lg font-semibold tracking-tight">Hospital Portal</p>
+          <p className="text-sm text-white/68">Operations workspace</p>
         </div>
       </div>
 
-      <div className="mt-10 space-y-2">
+      <div className="mt-6 grid gap-2 sm:grid-cols-2 xl:mt-10 xl:grid-cols-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
@@ -39,13 +39,13 @@ export function HospitalSidebar() {
             <Link
               key={item.label}
               href={item.href}
-              className={`flex items-center gap-3 rounded-2xl border px-4 py-3.5 text-sm font-medium transition ${
+              className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-medium transition xl:px-4 xl:py-3.5 ${
                 isActive
                   ? "border-teal-300/40 bg-teal-400/15 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
                   : "border-white/10 bg-white/5 text-white/86 hover:border-white/20 hover:bg-white/8"
               }`}
             >
-              <Icon className="h-4 w-4 text-teal-300" />
+              <Icon className={`h-4 w-4 ${isActive ? "text-teal-200" : "text-teal-300"}`} />
               <span>{item.label}</span>
             </Link>
           );

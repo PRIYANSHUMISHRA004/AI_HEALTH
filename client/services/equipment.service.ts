@@ -111,5 +111,6 @@ export const equipmentService = {
     apiClient.post<SemanticEquipmentSearchResult[], SemanticEquipmentSearchPayload>(
       "/api/equipment/search/semantic",
       payload,
+      { cache: "no-store" },
     ),
 };

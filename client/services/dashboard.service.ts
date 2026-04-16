@@ -1,10 +1,14 @@
-import { ambulanceService } from "@/services/ambulance.service";
-import { appointmentService } from "@/services/appointment.service";
-import { doctorService } from "@/services/doctor.service";
-import { equipmentService } from "@/services/equipment.service";
+import { analyticsService } from "@/services/analytics.service";
 import { hospitalService } from "@/services/hospital.service";
-import { issueService } from "@/services/issue.service";
-import type { Hospital } from "@/types";
+import type {
+  AnalyticsDistributionItem,
+  AnalyticsTrendPoint,
+  AppointmentAnalytics,
+  EquipmentAnalytics,
+  Hospital,
+  IssueAnalytics,
+  OverviewAnalytics,
+} from "@/types";
 
 interface HospitalStats {
   doctorCount?: number;
@@ -29,57 +33,57 @@ export interface HospitalDashboardMetrics {
     pendingAppointments: number;
     openIssues: number;
   };
+  charts: {
+    equipmentStatus: AnalyticsDistributionItem[];
+    issueTrends: AnalyticsTrendPoint[];
+    appointmentsPerDay: AnalyticsTrendPoint[];
+    topIssueTypes: IssueAnalytics["topIssueTypes"];
+    mostUsedEquipmentTypes: EquipmentAnalytics["mostUsedEquipmentTypes"];
+    appointmentStatus: AppointmentAnalytics["statusDistribution"];
+  };
 }
 
-export async function getHospitalDashboardMetrics(hospitalId: string, token: string) {
-  const [
-    hospital,
-    doctorResponse,
-    totalEquipmentResponse,
-    availableEquipmentResponse,
-    ambulanceResponse,
-    pendingAppointmentResponse,
-    openIssueResponse,
-  ] = await Promise.all([
-    hospitalService.getById(hospitalId) as Promise<HospitalDetailWithStats>,
-    doctorService.listByHospital(hospitalId, 1),
-    equipmentService.list({
-      hospitalId,
-      limit: 1,
-    }),
-    equipmentService.list({
-      hospitalId,
-      status: "available",
-      limit: 1,
-    }),
-    ambulanceService.list({
-      hospitalId,
-      limit: 1,
-    }),
-    appointmentService.list(
-      {
-        hospitalId,
-        status: "pending",
-        limit: 1,
-      },
-      token,
-    ),
-    issueService.list({
-      hospitalId,
-      status: "open",
-      limit: 1,
-    }),
-  ]);
+const dashboardMetricsRequests = new Map<string, Promise<HospitalDashboardMetrics>>();
 
-  return {
-    hospital,
-    summary: {
-      totalDoctors: hospital.stats?.doctorCount ?? doctorResponse.pagination.total,
-      totalEquipment: hospital.stats?.equipmentCount ?? totalEquipmentResponse.pagination.total,
-      availableEquipment: availableEquipmentResponse.pagination.total,
-      totalAmbulances: hospital.stats?.ambulanceCount ?? ambulanceResponse.pagination.total,
-      pendingAppointments: pendingAppointmentResponse.pagination.total,
-      openIssues: openIssueResponse.pagination.total,
-    },
-  } satisfies HospitalDashboardMetrics;
+export async function getHospitalDashboardMetrics(hospitalId: string, token: string) {
+  const cacheKey = `${hospitalId}:${token}`;
+  const cachedRequest = dashboardMetricsRequests.get(cacheKey);
+  if (cachedRequest) {
+    return cachedRequest;
+  }
+
+  const request = Promise.all([
+    hospitalService.getById(hospitalId) as Promise<HospitalDetailWithStats>,
+    analyticsService.getOverview(token, hospitalId) as Promise<OverviewAnalytics>,
+    analyticsService.getEquipment(token, hospitalId) as Promise<EquipmentAnalytics>,
+    analyticsService.getIssues(token, hospitalId) as Promise<IssueAnalytics>,
+    analyticsService.getAppointments(token, hospitalId) as Promise<AppointmentAnalytics>,
+  ])
+    .then(([hospital, overview, equipment, issues, appointments]) => ({
+      hospital,
+      summary: {
+        totalDoctors: hospital.stats?.doctorCount ?? overview.totals.doctors,
+        totalEquipment: hospital.stats?.equipmentCount ?? overview.totals.equipment,
+        availableEquipment:
+          equipment.statusDistribution.find((entry) => entry.label === "available")?.count ?? 0,
+        totalAmbulances: hospital.stats?.ambulanceCount ?? overview.totals.ambulances,
+        pendingAppointments:
+          appointments.statusDistribution.find((entry) => entry.label === "pending")?.count ?? 0,
+        openIssues: issues.statusDistribution.find((entry) => entry.label === "open")?.count ?? 0,
+      },
+      charts: {
+        equipmentStatus: equipment.statusDistribution,
+        issueTrends: issues.trends.last7Days,
+        appointmentsPerDay: appointments.trends.last7Days,
+        topIssueTypes: issues.topIssueTypes,
+        mostUsedEquipmentTypes: equipment.mostUsedEquipmentTypes,
+        appointmentStatus: appointments.statusDistribution,
+      },
+    }) satisfies HospitalDashboardMetrics)
+    .finally(() => {
+      dashboardMetricsRequests.delete(cacheKey);
+    });
+
+  dashboardMetricsRequests.set(cacheKey, request);
+  return request;
 }

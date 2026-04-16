@@ -36,5 +36,9 @@ const equipmentSchema = new Schema<IEquipment, EquipmentModel>(
 equipmentSchema.index({ hospitalId: 1, status: 1 });
 equipmentSchema.index({ hospitalId: 1, type: 1 });
 equipmentSchema.index({ hospitalId: 1, name: 1 });
+equipmentSchema.index({ hospitalId: 1, hospitalSection: 1, status: 1 });
+equipmentSchema.index({ hospitalId: 1, status: 1, createdAt: -1 });
+equipmentSchema.index({ hospitalId: 1, type: 1, createdAt: -1 });
+equipmentSchema.index({ hospitalId: 1, hospitalSection: 1, createdAt: -1 });
 
 export const Equipment = model<IEquipment, EquipmentModel>("Equipment", equipmentSchema);

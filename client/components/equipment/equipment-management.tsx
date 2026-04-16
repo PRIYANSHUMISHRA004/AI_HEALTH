@@ -287,12 +287,37 @@ export function EquipmentManagement() {
     setActionError(null);
     setSuccessMessage(null);
 
+    const selectedDoctor = doctors.find((doctor) => doctor._id === doctorId);
+    const previousEquipment = equipment;
+    const previousSelection = claimSelections[id];
+
+    setEquipment((current) =>
+      current.map((item) =>
+        item._id === id
+          ? {
+              ...item,
+              status: "in-use",
+              assignedTo: selectedDoctor
+                ? {
+                    _id: selectedDoctor._id,
+                    name: selectedDoctor.name,
+                    specialization: selectedDoctor.specialization,
+                    department: selectedDoctor.department,
+                  }
+                : item.assignedTo,
+            }
+          : item,
+      ),
+    );
+    setClaimSelections((current) => ({ ...current, [id]: doctorId }));
+
     try {
       await equipmentService.claim(id, { doctorId }, token);
       setSuccessMessage("Equipment claimed successfully.");
       toast.success("Equipment claimed", "The equipment was assigned successfully.");
-      await loadEquipment();
     } catch (error) {
+      setEquipment(previousEquipment);
+      setClaimSelections((current) => ({ ...current, [id]: previousSelection }));
       setActionError(getErrorMessage(error, "Unable to claim equipment"));
       toast.error("Claim failed", getErrorMessage(error, "Unable to claim equipment"));
     } finally {
@@ -311,12 +336,29 @@ export function EquipmentManagement() {
     setActionError(null);
     setSuccessMessage(null);
 
+    const previousEquipment = equipment;
+    const previousSelection = claimSelections[id];
+
+    setEquipment((current) =>
+      current.map((item) =>
+        item._id === id
+          ? {
+              ...item,
+              status: "available",
+              assignedTo: undefined,
+            }
+          : item,
+      ),
+    );
+    setClaimSelections((current) => ({ ...current, [id]: "" }));
+
     try {
       await equipmentService.release(id, token);
       setSuccessMessage("Equipment released back to available stock.");
       toast.success("Equipment released", "The equipment is back in available stock.");
-      await loadEquipment();
     } catch (error) {
+      setEquipment(previousEquipment);
+      setClaimSelections((current) => ({ ...current, [id]: previousSelection }));
       setActionError(getErrorMessage(error, "Unable to release equipment"));
       toast.error("Release failed", getErrorMessage(error, "Unable to release equipment"));
     } finally {

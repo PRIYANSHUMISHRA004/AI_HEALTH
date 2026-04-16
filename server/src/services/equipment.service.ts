@@ -69,6 +69,16 @@ const validateEquipmentStatus = (status: string): EquipmentStatus => {
   return status as EquipmentStatus;
 };
 
+const EQUIPMENT_LIST_POPULATE = [
+  { path: "assignedTo", select: "name specialization department availability" },
+];
+
+const EQUIPMENT_DETAIL_POPULATE = [
+  { path: "hospitalId", select: "name city state contactNumber availabilityStatus" },
+  { path: "assignedTo", select: "name specialization department availability" },
+  { path: "lastUsedBy", select: "name specialization department" },
+];
+
 const ensureHospitalExists = async (hospitalId: string): Promise<void> => {
   if (!isValidObjectId(hospitalId)) {
     throw new HttpError(400, "Invalid hospitalId");
@@ -173,8 +183,8 @@ export const getEquipmentList = async (filters: EquipmentFilters): Promise<Equip
 
   const [equipment, total] = await Promise.all([
     Equipment.find(query)
-      .populate("hospitalId", "name city state contactNumber availabilityStatus")
-      .populate("assignedTo", "name specialization department availability")
+      .select("-embedding -embeddingText")
+      .populate(EQUIPMENT_LIST_POPULATE)
       .sort(sort)
       .skip(skip)
       .limit(limit)
@@ -194,9 +204,8 @@ export const getEquipmentById = async (id: string): Promise<IEquipment> => {
   }
 
   const equipment = await Equipment.findById(id)
-    .populate("hospitalId", "name city state contactNumber availabilityStatus")
-    .populate("assignedTo", "name specialization department availability")
-    .populate("lastUsedBy", "name specialization department")
+    .select("-embedding -embeddingText")
+    .populate(EQUIPMENT_DETAIL_POPULATE)
     .lean();
 
   if (!equipment) {
@@ -252,9 +261,7 @@ export const createEquipment = async (payload: CreateEquipmentPayload): Promise<
   });
 
   const createdEquipment = await Equipment.findById(equipment._id)
-    .populate("hospitalId", "name city state contactNumber availabilityStatus")
-    .populate("assignedTo", "name specialization department availability")
-    .populate("lastUsedBy", "name specialization department")
+    .populate(EQUIPMENT_DETAIL_POPULATE)
     .lean();
 
   return createdEquipment as IEquipment;
@@ -347,9 +354,7 @@ export const updateEquipment = async (id: string, payload: UpdateEquipmentPayloa
   await equipment.save();
 
   const updatedEquipment = await Equipment.findById(equipment._id)
-    .populate("hospitalId", "name city state contactNumber availabilityStatus")
-    .populate("assignedTo", "name specialization department availability")
-    .populate("lastUsedBy", "name specialization department")
+    .populate(EQUIPMENT_DETAIL_POPULATE)
     .lean();
 
   emitEquipmentUpdated(updatedEquipment);
@@ -401,9 +406,7 @@ export const claimEquipment = async (id: string, payload: ClaimEquipmentPayload)
     },
     { new: true }
   )
-    .populate("hospitalId", "name city state contactNumber availabilityStatus")
-    .populate("assignedTo", "name specialization department availability")
-    .populate("lastUsedBy", "name specialization department")
+    .populate(EQUIPMENT_DETAIL_POPULATE)
     .lean();
 
   if (!updated) {
@@ -440,9 +443,7 @@ export const releaseEquipment = async (id: string): Promise<IEquipment> => {
   await equipment.save();
 
   const updatedEquipment = await Equipment.findById(equipment._id)
-    .populate("hospitalId", "name city state contactNumber availabilityStatus")
-    .populate("assignedTo", "name specialization department availability")
-    .populate("lastUsedBy", "name specialization department")
+    .populate(EQUIPMENT_DETAIL_POPULATE)
     .lean();
 
   emitEquipmentUpdated(updatedEquipment);

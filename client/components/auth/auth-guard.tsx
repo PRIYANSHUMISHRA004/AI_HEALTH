@@ -1,19 +1,32 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { useAuth } from "@/hooks";
+import type { UserRole } from "@/types";
 
 interface AuthGuardProps {
   children: React.ReactNode;
-  allowedRoles?: Array<"patient" | "hospital_admin" | "doctor">;
+  allowedRoles?: UserRole[];
+  unauthenticatedRedirectTo?: string;
+  unauthorizedRedirectTo?: string;
 }
 
-export function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
+export function AuthGuard({
+  children,
+  allowedRoles,
+  unauthenticatedRedirectTo,
+  unauthorizedRedirectTo = "/",
+}: AuthGuardProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { isHydrated, token, user, isAuthenticated, syncCurrentUser } = useAuth();
+
+  const loginRedirectPath = useMemo(
+    () => unauthenticatedRedirectTo ?? `/login?redirect=${encodeURIComponent(pathname)}`,
+    [pathname, unauthenticatedRedirectTo],
+  );
 
   useEffect(() => {
     if (!isHydrated) {
@@ -21,14 +34,14 @@ export function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
     }
 
     if (!token) {
-      router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
+      router.replace(loginRedirectPath as Parameters<typeof router.replace>[0]);
       return;
     }
 
     if (!user) {
       void syncCurrentUser();
     }
-  }, [isHydrated, pathname, router, syncCurrentUser, token, user]);
+  }, [isHydrated, loginRedirectPath, router, syncCurrentUser, token, user]);
 
   useEffect(() => {
     if (!isHydrated || !user || !allowedRoles?.length) {
@@ -36,9 +49,9 @@ export function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
     }
 
     if (!allowedRoles.includes(user.role)) {
-      router.replace("/");
+      router.replace(unauthorizedRedirectTo as Parameters<typeof router.replace>[0]);
     }
-  }, [allowedRoles, isHydrated, router, user]);
+  }, [allowedRoles, isHydrated, router, unauthorizedRedirectTo, user]);
 
   if (!isHydrated) {
     return <div className="p-6 text-sm text-[var(--muted)]">Loading session...</div>;

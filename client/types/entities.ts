@@ -174,3 +174,232 @@ export interface ChatMessage {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface AnalyticsDistributionItem {
+  label: string;
+  count: number;
+}
+
+export interface AnalyticsTrendPoint {
+  date: string;
+  count: number;
+}
+
+export interface AnalyticsHospitalScope {
+  id: string;
+  name: string;
+}
+
+export interface OverviewAnalytics {
+  hospital: AnalyticsHospitalScope;
+  totals: {
+    doctors: number;
+    equipment: number;
+    ambulances: number;
+    appointments: number;
+    issues: number;
+    reviews: number;
+  };
+  distributions: {
+    equipmentStatus: AnalyticsDistributionItem[];
+    appointmentStatus: AnalyticsDistributionItem[];
+    issueStatus: AnalyticsDistributionItem[];
+  };
+  trends: {
+    appointments: {
+      last7Days: AnalyticsTrendPoint[];
+      last30Days: AnalyticsTrendPoint[];
+    };
+    issues: {
+      last7Days: AnalyticsTrendPoint[];
+      last30Days: AnalyticsTrendPoint[];
+    };
+  };
+}
+
+export interface EquipmentAnalytics {
+  hospital: AnalyticsHospitalScope;
+  totals: {
+    equipment: number;
+  };
+  statusDistribution: AnalyticsDistributionItem[];
+  mostUsedEquipmentTypes: Array<{
+    type: string;
+    count: number;
+  }>;
+  trends: {
+    last7Days: AnalyticsTrendPoint[];
+    last30Days: AnalyticsTrendPoint[];
+  };
+}
+
+export interface IssueAnalytics {
+  hospital: AnalyticsHospitalScope;
+  totals: {
+    issues: number;
+  };
+  statusDistribution: AnalyticsDistributionItem[];
+  topIssueTypes: Array<{
+    issueType: string;
+    count: number;
+  }>;
+  trends: {
+    last7Days: AnalyticsTrendPoint[];
+    last30Days: AnalyticsTrendPoint[];
+  };
+}
+
+export interface AppointmentAnalytics {
+  hospital: AnalyticsHospitalScope;
+  totals: {
+    appointments: number;
+  };
+  statusDistribution: AnalyticsDistributionItem[];
+  trends: {
+    last7Days: AnalyticsTrendPoint[];
+    last30Days: AnalyticsTrendPoint[];
+  };
+}
+
+export interface GlobalSearchHospitalResult {
+  _id?: string;
+  name: string;
+  city?: string;
+  state?: string;
+  specialties?: string[];
+  availabilityStatus?: HospitalAvailabilityStatus;
+  averageRating?: number;
+}
+
+export interface GlobalSearchDoctorResult {
+  _id?: string;
+  name: string;
+  specialization?: string;
+  department?: string;
+  averageRating?: number;
+  hospitalId?:
+    | string
+    | {
+        _id?: string;
+        name: string;
+        city?: string;
+        state?: string;
+      };
+}
+
+export interface GlobalSearchEquipmentResult {
+  _id?: string;
+  name: string;
+  type?: string;
+  status?: EquipmentStatus;
+  hospitalSection?: string;
+  hospitalId?:
+    | string
+    | {
+        _id?: string;
+        name: string;
+        city?: string;
+        state?: string;
+      };
+}
+
+export interface GlobalSearchShopResult {
+  _id?: string;
+  name: string;
+  area?: string;
+  city?: string;
+  state?: string;
+  availableMedicines?: string[];
+}
+
+export interface GlobalSearchResponse {
+  query: string;
+  hospitals: GlobalSearchHospitalResult[];
+  doctors: GlobalSearchDoctorResult[];
+  equipment: GlobalSearchEquipmentResult[];
+  shops: GlobalSearchShopResult[];
+}
+
+export interface AIInsight {
+  id: string;
+  title: string;
+  insight: string;
+}
+
+export interface AIInsightsResponse {
+  hospital: AnalyticsHospitalScope;
+  insights: AIInsight[];
+}
+
+export interface EmergencyHospitalRecommendation {
+  id: string;
+  name: string;
+  city: string;
+  state: string;
+  address: string;
+  contactNumber: string;
+  emergencyContact: string;
+  availabilityStatus: HospitalAvailabilityStatus;
+  distanceKm?: number;
+  availableEquipmentCount: number;
+  availableAmbulanceCount: number;
+  matchReason: string;
+}
+
+export interface EmergencyEquipmentRecommendation {
+  id: string;
+  name: string;
+  type: string;
+  status: EquipmentStatus;
+  hospitalSection: string;
+  hospital: {
+    id: string;
+    name: string;
+    city: string;
+    state: string;
+    contactNumber: string;
+  };
+}
+
+export interface EmergencyAmbulanceRecommendation {
+  id: string;
+  vehicleNumber: string;
+  driverName: string;
+  contactNumber: string;
+  currentLocation?: string;
+  hospital: {
+    id: string;
+    name: string;
+    city: string;
+    state: string;
+    emergencyContact: string;
+  };
+}
+
+export interface EmergencyInterpretation {
+  summary: string;
+  priority: "critical" | "high" | "medium";
+  suggestedDepartment?: string;
+  equipmentHints: string[];
+  locationHints: {
+    city?: string;
+    state?: string;
+  };
+}
+
+export interface EmergencyResponse {
+  query: {
+    problemDescription: string;
+    location: string;
+  };
+  interpretation: EmergencyInterpretation;
+  bestHospital: EmergencyHospitalRecommendation | null;
+  bestEquipment: EmergencyEquipmentRecommendation | null;
+  bestAmbulance: EmergencyAmbulanceRecommendation | null;
+  nearbyHospitals: EmergencyHospitalRecommendation[];
+  contactInfo: {
+    hospitalContact?: string;
+    emergencyContact?: string;
+    ambulanceContact?: string;
+  };
+}

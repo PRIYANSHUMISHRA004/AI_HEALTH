@@ -4,17 +4,12 @@ dotenv.config();
 
 type NodeEnv = "development" | "production" | "test";
 
-const getRequiredEnv = (key: string): string => {
-  const value = process.env[key]?.trim();
+const getRequiredEnv = (key: string, fallback?: string): string => {
+  const value = process.env[key]?.trim() || fallback?.trim();
   if (!value) {
-    throw new Error(`[env] Missing required environment variable: ${key}`);
+    throw new Error(`[env] Missing required environment variable: ${key}. Add it to server/.env before starting the server.`);
   }
   return value;
-};
-
-const getOptionalEnv = (key: string): string | undefined => {
-  const value = process.env[key]?.trim();
-  return value || undefined;
 };
 
 const parsePort = (value: string | undefined): number => {
@@ -39,9 +34,9 @@ export interface EnvConfig {
   cloudinaryCloudName: string;
   cloudinaryApiKey: string;
   cloudinaryApiSecret: string;
-  hfApiKey?: string;
+  hfApiKey: string;
   hfEmbeddingModel: string;
-  openRouterApiKey?: string;
+  openRouterApiKey: string;
   openRouterModel: string;
 }
 
@@ -53,8 +48,8 @@ export const env: EnvConfig = {
   cloudinaryCloudName: getRequiredEnv("CLOUDINARY_CLOUD_NAME"),
   cloudinaryApiKey: getRequiredEnv("CLOUDINARY_API_KEY"),
   cloudinaryApiSecret: getRequiredEnv("CLOUDINARY_API_SECRET"),
-  hfApiKey: getOptionalEnv("HF_API_KEY"),
-  hfEmbeddingModel: getOptionalEnv("HF_EMBEDDING_MODEL") || "sentence-transformers/all-MiniLM-L6-v2",
-  openRouterApiKey: getOptionalEnv("OPENROUTER_API_KEY"),
-  openRouterModel: getOptionalEnv("OPENROUTER_MODEL") || "google/gemini-2.0-flash-lite",
+  hfApiKey: getRequiredEnv("HF_API_KEY"),
+  hfEmbeddingModel: getRequiredEnv("HF_EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2"),
+  openRouterApiKey: getRequiredEnv("OPENROUTER_API_KEY"),
+  openRouterModel: getRequiredEnv("OPENROUTER_MODEL", "openrouter/free"),
 };

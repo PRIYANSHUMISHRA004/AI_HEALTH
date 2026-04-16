@@ -69,6 +69,8 @@ const hospitalSchema = new Schema<IHospital, HospitalModel>(
 
 hospitalSchema.index({ city: 1, state: 1 });
 hospitalSchema.index({ state: 1, city: 1 });
+hospitalSchema.index({ name: 1 });
+hospitalSchema.index({ availabilityStatus: 1, city: 1, state: 1 });
 hospitalSchema.index({ specialties: 1 });
 hospitalSchema.index({ facilities: 1 });
 hospitalSchema.index({ departments: 1 });

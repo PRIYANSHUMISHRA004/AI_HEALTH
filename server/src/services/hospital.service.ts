@@ -141,7 +141,7 @@ export const getHospitals = async (filters: HospitalFilters): Promise<HospitalLi
   }
 
   const [hospitals, total] = await Promise.all([
-    Hospital.find(query).sort(sort).skip(skip).limit(limit).lean(),
+    Hospital.find(query).select("-embedding -embeddingText").sort(sort).skip(skip).limit(limit).lean(),
     Hospital.countDocuments(query),
   ]);
 
@@ -157,7 +157,7 @@ export const getHospitalById = async (id: string): Promise<Record<string, unknow
   }
 
   const hospitalId = new Types.ObjectId(id);
-  const hospital = await Hospital.findById(hospitalId).lean();
+  const hospital = await Hospital.findById(hospitalId).select("-embedding -embeddingText").lean();
 
   if (!hospital) {
     throw new HttpError(404, "Hospital not found");

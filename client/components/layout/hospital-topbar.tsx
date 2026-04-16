@@ -1,13 +1,25 @@
+"use client";
+
+import { EmergencyLauncher } from "@/components/emergency/emergency-launcher";
+import { NotificationBell } from "@/components/notifications/notification-bell";
+import { GlobalSearch } from "@/components/search/global-search";
+
 export function HospitalTopbar() {
   return (
-    <div className="flex flex-col gap-4 rounded-[26px] border border-[var(--border)] bg-white/80 px-5 py-5 shadow-[0_14px_34px_rgba(16,35,27,0.04)] sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--primary)]">Workspace shell</p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)]">Hospital operations</h1>
+    <div className="surface-card flex flex-col gap-4 rounded-[24px] px-4 py-4 sm:rounded-[26px] sm:px-5 sm:py-5 lg:flex-row lg:items-center lg:justify-between">
+      <div className="min-w-0">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--primary)]">Workspace shell</p>
+        <h1 className="mt-2 text-xl font-semibold tracking-tight text-[var(--foreground)] sm:text-2xl">Hospital operations</h1>
       </div>
 
-      <div className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm font-medium text-[var(--muted)]">
-        Role-based navigation ready
+      <div className="flex w-full flex-col gap-3 lg:max-w-2xl lg:flex-row lg:items-center">
+        <div className="min-w-0 flex-1">
+          <GlobalSearch compact />
+        </div>
+        <div className="flex items-center justify-end gap-2 sm:gap-3">
+          <EmergencyLauncher compact />
+          <NotificationBell />
+        </div>
       </div>
     </div>
   );

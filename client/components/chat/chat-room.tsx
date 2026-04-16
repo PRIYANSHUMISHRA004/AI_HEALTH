@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ImagePlus, LoaderCircle, SendHorizonal } from "lucide-react";
 
 import { AuthGuard } from "@/components/auth/auth-guard";
+import { MediaThumbnailGrid, type LocalMediaPreview } from "@/components/media/media-thumbnail-grid";
 import { cn, getErrorMessage } from "@/lib/utils";
 import { useAuth, useSocket, useToast } from "@/hooks";
 import { chatService } from "@/services";
@@ -17,24 +18,50 @@ interface ChatRoomProps {
 }
 
 type IncomingSocketMessage = ChatMessage | { persisted?: boolean; id?: string };
-
-function getAttachmentLabel(attachment: MediaAttachment) {
-  return attachment.originalName || attachment.format || attachment.resourceType;
-}
+type OptimisticChatMessage = ChatMessage & { pending?: boolean };
 
 export function ChatRoom({ title, description, defaultRoomId, allowedRoles }: ChatRoomProps) {
   const { token, user } = useAuth();
   const { socket, isConnected, connect } = useSocket();
   const toast = useToast();
   const [chatRoomId, setChatRoomId] = useState(defaultRoomId);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<OptimisticChatMessage[]>([]);
   const [messageText, setMessageText] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [attachmentPreviews, setAttachmentPreviews] = useState<LocalMediaPreview[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isReady = Boolean(token && chatRoomId.trim());
+
+  useEffect(() => {
+    const previews = attachments.map((file) => ({
+      id: `${file.name}-${file.lastModified}`,
+      name: file.name,
+      url: URL.createObjectURL(file),
+      kind: file.type.startsWith("image/")
+        ? "image"
+        : file.type.startsWith("video/")
+          ? "video"
+          : "file",
+      sizeLabel: `${Math.ceil(file.size / 1024)} KB`,
+      note:
+        file.type.startsWith("image/") || file.type.startsWith("video/")
+          ? undefined
+          : "This file type cannot be previewed inline",
+    } satisfies LocalMediaPreview));
+
+    setAttachmentPreviews(previews);
+
+    return () => {
+      previews.forEach((preview) => {
+        if (preview.url) {
+          URL.revokeObjectURL(preview.url);
+        }
+      });
+    };
+  }, [attachments]);
 
   useEffect(() => {
     if (!token || !chatRoomId.trim()) {
@@ -134,6 +161,38 @@ export function ChatRoom({ title, description, defaultRoomId, allowedRoles }: Ch
     setIsSending(true);
     setError(null);
 
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMessage: OptimisticChatMessage = {
+      id: tempId,
+      chatRoomId: chatRoomId.trim(),
+      message: messageText,
+      senderRole: user?.role ?? "patient",
+      attachments: attachments.map((file, index) => ({
+        publicId: `${tempId}-${index}`,
+        url: "",
+        resourceType: file.type.startsWith("image/") ? "image" : "video",
+        originalName: file.name,
+        format: file.name.split(".").pop(),
+      })),
+      readBy: [],
+      sender: user
+        ? {
+            _id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            phone: user.phone,
+          }
+        : null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      pending: true,
+    };
+
+    setMessages((current) => [...current, optimisticMessage]);
+    setMessageText("");
+    setAttachments([]);
+
     try {
       const createdMessage = await chatService.sendMessage(
         {
@@ -145,12 +204,13 @@ export function ChatRoom({ title, description, defaultRoomId, allowedRoles }: Ch
       );
 
       setMessages((current) =>
-        current.some((item) => item.id === createdMessage.id) ? current : [...current, createdMessage],
+        current.map((item) => (item.id === tempId ? createdMessage : item)).filter((item, index, array) => {
+          return array.findIndex((candidate) => candidate.id === item.id) === index;
+        }),
       );
-      setMessageText("");
-      setAttachments([]);
       toast.success("Message sent", "Your chat message was delivered.");
     } catch (sendError) {
+      setMessages((current) => current.filter((item) => item.id !== tempId));
       setError(getErrorMessage(sendError, "Failed to send message."));
       toast.error("Message failed", getErrorMessage(sendError, "Failed to send message."));
     } finally {
@@ -250,28 +310,15 @@ export function ChatRoom({ title, description, defaultRoomId, allowedRoles }: Ch
                         {item.message}
                       </p>
 
+                      {item.pending ? (
+                        <p className="mt-2 text-xs font-medium uppercase tracking-[0.18em] text-[var(--muted)]">
+                          Sending...
+                        </p>
+                      ) : null}
+
                       {item.attachments.length ? (
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          {item.attachments.map((attachment) =>
-                            attachment.resourceType === "image" ? (
-                              <img
-                                key={attachment.publicId}
-                                src={attachment.url}
-                                alt={attachment.originalName || "Chat attachment"}
-                                className="h-20 w-20 rounded-2xl border border-[var(--border)] object-cover"
-                              />
-                            ) : (
-                              <a
-                                key={attachment.publicId}
-                                href={attachment.url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex rounded-2xl border border-[var(--border)] bg-white px-3 py-2 text-xs font-medium text-[var(--foreground)]"
-                              >
-                                {getAttachmentLabel(attachment)}
-                              </a>
-                            ),
-                          )}
+                        <div className="mt-4">
+                          <MediaThumbnailGrid items={item.attachments} />
                         </div>
                       ) : null}
                     </article>
@@ -309,16 +356,12 @@ export function ChatRoom({ title, description, defaultRoomId, allowedRoles }: Ch
               </label>
 
               {attachments.length ? (
-                <div className="flex flex-wrap gap-2">
-                  {attachments.map((file) => (
-                    <span
-                      key={`${file.name}-${file.size}`}
-                      className="inline-flex rounded-full bg-[rgba(16,35,27,0.06)] px-3 py-1 text-xs font-medium text-[var(--foreground)]"
-                    >
-                      {file.name}
-                    </span>
-                  ))}
-                </div>
+                <MediaThumbnailGrid
+                  items={attachmentPreviews}
+                  title="Selected attachments"
+                  emptyTitle="No files selected"
+                  emptyDescription="Add media or files to preview them here."
+                />
               ) : null}
 
               <button

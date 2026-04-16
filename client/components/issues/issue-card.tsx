@@ -1,5 +1,6 @@
-import { CalendarDays, CircleAlert, Images, Paperclip } from "lucide-react";
+import { CalendarDays, CircleAlert, Paperclip } from "lucide-react";
 
+import { MediaThumbnailGrid } from "@/components/media/media-thumbnail-grid";
 import { StatusBadge } from "@/components/ui/status-badge";
 import type { Issue } from "@/types";
 
@@ -49,37 +50,7 @@ export function IssueCard({ issue }: IssueCardProps) {
             <Paperclip className="h-4 w-4 text-[var(--primary)]" />
             Attachments ({attachments.length})
           </div>
-          <div className="grid gap-3 sm:grid-cols-3">
-            {previewAttachments.map((attachment) => {
-              const isImage = attachment.resourceType === "image";
-
-              return isImage ? (
-                <a
-                  key={attachment.publicId}
-                  href={attachment.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="overflow-hidden rounded-[20px] border border-[var(--border)] bg-[var(--card)]"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={attachment.url} alt={attachment.originalName || issue.title} className="h-32 w-full object-cover" />
-                </a>
-              ) : (
-                <a
-                  key={attachment.publicId}
-                  href={attachment.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex min-h-32 flex-col items-center justify-center rounded-[20px] border border-[var(--border)] bg-[var(--card)] p-4 text-center"
-                >
-                  <Images className="h-5 w-5 text-[var(--primary)]" />
-                  <p className="mt-3 text-xs font-medium text-[var(--muted)]">
-                    {attachment.originalName || attachment.publicId}
-                  </p>
-                </a>
-              );
-            })}
-          </div>
+          <MediaThumbnailGrid items={previewAttachments} maxItems={3} />
         </div>
       ) : null}
     </article>

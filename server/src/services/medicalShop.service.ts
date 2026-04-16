@@ -102,7 +102,7 @@ export const getMedicalShops = async (
   attachRegexFilter(query, "area", filters.area);
 
   const [shops, total] = await Promise.all([
-    MedicalShop.find(query).sort(sort).skip(skip).limit(limit).lean(),
+    MedicalShop.find(query).select("-embedding -embeddingText").sort(sort).skip(skip).limit(limit).lean(),
     MedicalShop.countDocuments(query),
   ]);
 
@@ -117,7 +117,7 @@ export const getMedicalShopById = async (id: string): Promise<IMedicalShop> => {
     throw new HttpError(400, "Invalid medical shop id");
   }
 
-  const shop = await MedicalShop.findById(id).lean();
+  const shop = await MedicalShop.findById(id).select("-embedding -embeddingText").lean();
   if (!shop) {
     throw new HttpError(404, "Medical shop not found");
   }

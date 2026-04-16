@@ -2,23 +2,25 @@
 @import "leaflet/dist/leaflet.css";
 
 :root {
-  --background: #f4f7f3;
+  --background: #eef3ef;
   --foreground: #10231b;
-  --card: rgba(255, 255, 255, 0.92);
+  --card: rgba(255, 255, 255, 0.94);
   --card-strong: #ffffff;
-  --muted: #61736b;
-  --border: rgba(16, 35, 27, 0.08);
+  --muted: #5f716b;
+  --border: rgba(16, 35, 27, 0.09);
   --primary: #0f766e;
-  --primary-strong: #115e59;
-  --accent: #d97706;
-  --accent-soft: #fff1df;
+  --primary-strong: #0b5f59;
+  --primary-soft: #dff4f1;
+  --accent: #c96d10;
+  --accent-soft: #fff3df;
   --success: #166534;
-  --shadow: 0 28px 80px rgba(15, 118, 110, 0.12);
+  --danger: #be123c;
+  --shadow: 0 24px 72px rgba(13, 77, 69, 0.12);
   --grid: rgba(16, 35, 27, 0.05);
   --hero-glow:
-    radial-gradient(circle at top, rgba(13, 148, 136, 0.2), transparent 38%),
-    radial-gradient(circle at 80% 20%, rgba(217, 119, 6, 0.08), transparent 26%);
-  --font-sans: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    radial-gradient(circle at top, rgba(13, 148, 136, 0.16), transparent 34%),
+    radial-gradient(circle at 82% 16%, rgba(201, 109, 16, 0.08), transparent 24%);
+  --font-sans: "Aptos", "Segoe UI Variable", "Inter", "Helvetica Neue", Arial, sans-serif;
 }
 
 * {
@@ -33,10 +35,12 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    linear-gradient(180deg, rgba(251, 252, 250, 0.98) 0%, rgba(240, 246, 242, 0.98) 100%),
+    linear-gradient(180deg, rgba(250, 252, 250, 0.98) 0%, rgba(235, 242, 238, 0.98) 100%),
     var(--hero-glow);
   color: var(--foreground);
   font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
 }
 
 a {
@@ -71,14 +75,97 @@ button {
 
 .surface-card {
   border: 1px solid var(--border);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(249, 252, 250, 0.94));
-  box-shadow: 0 18px 44px rgba(16, 35, 27, 0.06);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 251, 249, 0.95));
+  box-shadow: 0 18px 46px rgba(16, 35, 27, 0.06);
 }
 
 .surface-panel {
   border: 1px solid var(--border);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 251, 249, 0.96));
   box-shadow: 0 22px 54px rgba(16, 35, 27, 0.08);
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-danger,
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  border-radius: 999px;
+  font-size: 0.94rem;
+  font-weight: 600;
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    background-color 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.btn-primary {
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong) 100%);
+  color: white;
+  box-shadow: 0 16px 36px rgba(15, 118, 110, 0.2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 20px 42px rgba(15, 118, 110, 0.24);
+}
+
+.btn-secondary,
+.icon-button {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--foreground);
+  box-shadow: 0 10px 24px rgba(16, 35, 27, 0.05);
+}
+
+.btn-secondary:hover,
+.icon-button:hover {
+  border-color: rgba(15, 118, 110, 0.22);
+  background: rgba(243, 249, 246, 0.98);
+}
+
+.btn-danger {
+  border: 1px solid rgba(190, 18, 60, 0.08);
+  background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+  color: white;
+  box-shadow: 0 16px 32px rgba(190, 18, 60, 0.22);
+}
+
+.btn-danger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 20px 38px rgba(190, 18, 60, 0.26);
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-danger:disabled,
+.icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-sm {
+  min-height: 2.75rem;
+  padding: 0.65rem 1rem;
+}
+
+.btn-md {
+  min-height: 3rem;
+  padding: 0.8rem 1.15rem;
+}
+
+.icon-button {
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  padding: 0.65rem;
 }
 
 .field-control {
@@ -120,4 +207,15 @@ button {
 
 .table-head-row {
   background: rgba(16, 35, 27, 0.03);
+}
+
+@media (max-width: 640px) {
+  body {
+    font-size: 14px;
+  }
+
+  .app-shell::before {
+    background-size: 56px 56px;
+    opacity: 0.32;
+  }
 }

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 
 import { IssuesManagementFilters } from "@/components/issues/issues-management-filters";
+import { MediaThumbnailGrid } from "@/components/media/media-thumbnail-grid";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { LoadingState } from "@/components/ui/loading-state";
@@ -173,42 +174,6 @@ export function IssuesManagement() {
     }
   };
 
-  const renderAttachmentPreview = (issue: Issue) => {
-    if (!issue.attachments?.length) {
-      return <p className="text-sm text-[var(--muted)]">No attachments</p>;
-    }
-
-    return (
-      <div className="flex flex-wrap gap-2">
-        {issue.attachments.slice(0, 3).map((attachment) =>
-          attachment.resourceType === "image" ? (
-            <img
-              key={attachment.publicId}
-              src={attachment.url}
-              alt={attachment.originalName || "Issue attachment"}
-              className="h-16 w-16 rounded-2xl border border-[var(--border)] object-cover"
-            />
-          ) : (
-            <a
-              key={attachment.publicId}
-              href={attachment.url}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex rounded-2xl border border-[var(--border)] bg-white px-3 py-2 text-xs font-medium text-[var(--foreground)]"
-            >
-              {attachment.resourceType === "video" ? "Video" : "File"}
-            </a>
-          ),
-        )}
-        {issue.attachments.length > 3 ? (
-          <span className="inline-flex items-center rounded-2xl bg-[rgba(16,35,27,0.05)] px-3 py-2 text-xs font-medium text-[var(--muted)]">
-            +{issue.attachments.length - 3} more
-          </span>
-        ) : null}
-      </div>
-    );
-  };
-
   return (
     <div className="space-y-6">
       <section className="rounded-[34px] border border-[var(--border)] bg-[linear-gradient(135deg,#0f766e_0%,#134e4a_55%,#10231b_100%)] px-6 py-8 text-white shadow-[0_25px_70px_rgba(15,118,110,0.24)] sm:px-8">
@@ -302,7 +267,11 @@ export function IssuesManagement() {
 
                 <div className="mt-5">
                   <p className="mb-3 text-sm font-medium text-[var(--foreground)]">Attachments</p>
-                  {renderAttachmentPreview(issue)}
+                  {issue.attachments?.length ? (
+                    <MediaThumbnailGrid items={issue.attachments} maxItems={3} />
+                  ) : (
+                    <p className="text-sm text-[var(--muted)]">No attachments</p>
+                  )}
                 </div>
 
                 <div className="mt-6 flex flex-wrap gap-3">

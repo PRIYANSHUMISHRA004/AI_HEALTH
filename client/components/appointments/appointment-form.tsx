@@ -29,6 +29,10 @@ export function AppointmentForm({ initialHospitalId = "", initialDoctorId = "" }
   const [hospitalsLoading, setHospitalsLoading] = useState(true);
   const [doctorsLoading, setDoctorsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [optimisticAppointment, setOptimisticAppointment] = useState<{
+    appointmentDate: string;
+    pending: boolean;
+  } | null>(null);
 
   const [form, setForm] = useState({
     hospitalId: initialHospitalId,
@@ -126,6 +130,11 @@ export function AppointmentForm({ initialHospitalId = "", initialDoctorId = "" }
     }
 
     try {
+      setOptimisticAppointment({
+        appointmentDate: form.appointmentDate,
+        pending: true,
+      });
+
       const appointment = await runCreateAppointment(() =>
         appointmentService.create(
           {
@@ -139,11 +148,17 @@ export function AppointmentForm({ initialHospitalId = "", initialDoctorId = "" }
         ),
       );
 
+      setOptimisticAppointment({
+        appointmentDate: appointment.appointmentDate,
+        pending: false,
+      });
+
       toast.success(
         "Appointment requested",
         `Scheduled for ${new Date(appointment.appointmentDate).toLocaleString()}.`,
       );
     } catch (submitError) {
+      setOptimisticAppointment(null);
       toast.error("Appointment booking failed", getErrorMessage(submitError, "Please try again."));
     }
   };
@@ -268,10 +283,25 @@ export function AppointmentForm({ initialHospitalId = "", initialDoctorId = "" }
 
                 {loadError ? <p className="text-sm text-red-600">{loadError}</p> : null}
                 {submitError ? <p className="text-sm text-red-600">{submitError}</p> : null}
-                {createdAppointment ? (
+                {optimisticAppointment ? (
                   <div className="rounded-[24px] border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-700">
-                    Appointment created successfully for{" "}
-                    <span className="font-semibold">{new Date(createdAppointment.appointmentDate).toLocaleString()}</span>.
+                    {optimisticAppointment.pending ? (
+                      <>
+                        Appointment request placed for{" "}
+                        <span className="font-semibold">
+                          {new Date(optimisticAppointment.appointmentDate).toLocaleString()}
+                        </span>
+                        . Confirming with the backend...
+                      </>
+                    ) : (
+                      <>
+                        Appointment created successfully for{" "}
+                        <span className="font-semibold">
+                          {new Date(optimisticAppointment.appointmentDate).toLocaleString()}
+                        </span>
+                        .
+                      </>
+                    )}
                   </div>
                 ) : null}
 

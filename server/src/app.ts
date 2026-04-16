@@ -15,6 +15,7 @@ import hospitalRouter from "./routes/hospital.routes";
 import issueRouter from "./routes/issue.routes";
 import medicalShopRouter from "./routes/medicalShop.routes";
 import reviewRouter from "./routes/review.routes";
+import searchRouter from "./routes/search.routes";
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use("/api/ambulances", ambulanceRouter);
 app.use("/api/appointments", appointmentRouter);
 app.use("/api/medical-shops", medicalShopRouter);
 app.use("/api/reviews", reviewRouter);
+app.use("/api/search", searchRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

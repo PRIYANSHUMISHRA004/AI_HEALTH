@@ -68,5 +68,6 @@ export const medicalShopService = {
     apiClient.post<SemanticMedicalShopSearchResult[], SemanticMedicalShopSearchPayload>(
       "/api/medical-shops/search/semantic",
       payload,
+      { cache: "no-store" },
     ),
 };

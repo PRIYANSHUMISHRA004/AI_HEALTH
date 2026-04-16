@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   CalendarClock,
+  RefreshCcw,
   PackageCheck,
   PackageSearch,
   ShieldAlert,
@@ -11,9 +12,12 @@ import {
 } from "lucide-react";
 
 import { getErrorMessage } from "@/lib/utils";
-import { createAsyncState, type AsyncState } from "@/types";
-import { getHospitalDashboardMetrics, type HospitalDashboardMetrics } from "@/services";
+import { createAsyncState, type AIInsight, type AsyncState } from "@/types";
+import { aiService, getHospitalDashboardMetrics, type HospitalDashboardMetrics } from "@/services";
 import { useAuth } from "@/hooks/use-auth";
+import { AppointmentsBarChart } from "@/components/dashboard/appointments-bar-chart";
+import { EquipmentStatusChart } from "@/components/dashboard/equipment-status-chart";
+import { IssueTrendsChart } from "@/components/dashboard/issue-trends-chart";
 import { SectionPanel } from "@/components/dashboard/section-panel";
 import { SummaryCard } from "@/components/dashboard/summary-card";
 import { ErrorState } from "@/components/ui/error-state";
@@ -66,9 +70,28 @@ const summaryConfig = [
 export function DashboardShell() {
   const { token, user } = useAuth();
   const [state, setState] = useState<AsyncState<HospitalDashboardMetrics>>(createAsyncState());
+  const [insights, setInsights] = useState<AIInsight[]>([]);
+  const [insightsError, setInsightsError] = useState<string | null>(null);
+  const [isInsightsLoading, setIsInsightsLoading] = useState(false);
+
+  const loadInsights = useCallback(async (hospitalId: string, accessToken: string) => {
+    setIsInsightsLoading(true);
+    setInsightsError(null);
+
+    try {
+      const response = await aiService.getInsights(accessToken, hospitalId);
+      setInsights(response.insights);
+    } catch (error) {
+      setInsightsError(getErrorMessage(error, "Unable to generate AI insights right now."));
+    } finally {
+      setIsInsightsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    if (!token || !user?.linkedHospitalId) {
+    const linkedHospitalId = user?.linkedHospitalId;
+
+    if (!token || !linkedHospitalId) {
       setState({
         data: null,
         isLoading: false,
@@ -85,7 +108,7 @@ export function DashboardShell() {
       error: null,
     }));
 
-    getHospitalDashboardMetrics(user.linkedHospitalId, token)
+    getHospitalDashboardMetrics(linkedHospitalId, token)
       .then((data) => {
         if (!isMounted) return;
         setState({
@@ -93,6 +116,7 @@ export function DashboardShell() {
           isLoading: false,
           error: null,
         });
+        void loadInsights(linkedHospitalId, token);
       })
       .catch((error: unknown) => {
         if (!isMounted) return;
@@ -106,7 +130,7 @@ export function DashboardShell() {
     return () => {
       isMounted = false;
     };
-  }, [token, user?.linkedHospitalId]);
+  }, [loadInsights, token, user?.linkedHospitalId]);
 
   if (state.error && !state.data) {
     return (
@@ -120,20 +144,20 @@ export function DashboardShell() {
   const metrics = state.data;
 
   return (
-    <div className="space-y-8">
-      <section className="overflow-hidden rounded-[34px] border border-[var(--border)] bg-[linear-gradient(135deg,#0f766e_0%,#134e4a_55%,#10231b_100%)] px-6 py-8 text-white shadow-[0_25px_70px_rgba(15,118,110,0.24)] sm:px-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-teal-100/90">Hospital dashboard</p>
+    <div className="space-y-6 sm:space-y-8">
+      <section className="overflow-hidden rounded-[30px] border border-[var(--border)] bg-[linear-gradient(135deg,#0f766e_0%,#134e4a_55%,#10231b_100%)] px-5 py-6 text-white shadow-[0_25px_70px_rgba(15,118,110,0.24)] sm:rounded-[34px] sm:px-8 sm:py-8">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-teal-100/90">Hospital dashboard</p>
         <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
               {metrics?.hospital.name ?? "Operations overview"}
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-teal-50/88">
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-teal-50/88 sm:text-[15px]">
               Track doctors, resources, appointments, and issue pressure from one admin surface built for quick demo flow and easy expansion.
             </p>
           </div>
-          <div className="rounded-[24px] border border-white/12 bg-white/8 px-5 py-4 backdrop-blur">
-            <p className="text-xs uppercase tracking-[0.22em] text-teal-100/80">Location</p>
+          <div className="w-full rounded-[22px] border border-white/12 bg-white/8 px-5 py-4 backdrop-blur sm:w-auto sm:min-w-[220px] sm:rounded-[24px]">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-teal-100/80">Location</p>
             <p className="mt-2 text-lg font-semibold">
               {metrics ? `${metrics.hospital.city}, ${metrics.hospital.state}` : "Loading profile"}
             </p>
@@ -158,76 +182,81 @@ export function DashboardShell() {
         <SectionPanel
           eyebrow="Charts"
           title="Readiness and demand trends"
-          description="These cards reserve space for live charts later. For now, they present the shape of the dashboard and a simple visual summary for hackathon demos."
+          description="Live operational charts fed by the backend analytics endpoints so the dashboard reads clearly during demos and scales into deeper reporting later."
         >
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-[24px] border border-[var(--border)] bg-[rgba(15,118,110,0.04)] p-5">
-              <p className="text-sm font-semibold text-[var(--foreground)]">Appointment load</p>
-              <div className="mt-5 flex h-40 items-end gap-3">
-                {[38, 52, 48, 70, 66, 84, 76].map((value, index) => (
-                  <div key={index} className="flex-1 rounded-t-2xl bg-[linear-gradient(180deg,#14b8a6_0%,#0f766e_100%)]" style={{ height: `${value}%` }} />
-                ))}
-              </div>
-            </div>
-            <div className="rounded-[24px] border border-[var(--border)] bg-[rgba(217,119,6,0.06)] p-5">
-              <p className="text-sm font-semibold text-[var(--foreground)]">Equipment readiness</p>
-              <div className="mt-5 space-y-3">
-                {[
-                  ["Available", metrics?.summary.availableEquipment ?? 0, "bg-emerald-500"],
-                  ["Reserved", Math.max((metrics?.summary.totalEquipment ?? 0) - (metrics?.summary.availableEquipment ?? 0), 0), "bg-amber-500"],
-                  ["Open issues", metrics?.summary.openIssues ?? 0, "bg-rose-500"],
-                ].map(([label, value, color]) => (
-                  <div key={label as string}>
-                    <div className="mb-2 flex items-center justify-between text-sm text-[var(--muted)]">
-                      <span>{label}</span>
-                      <span>{value}</span>
-                    </div>
-                    <div className="h-3 rounded-full bg-black/6">
-                      <div
-                        className={`h-3 rounded-full ${color as string}`}
-                        style={{
-                          width: `${Math.min(
-                            100,
-                            Math.max(
-                              12,
-                              ((value as number) / Math.max(metrics?.summary.totalEquipment ?? 1, 1)) * 100,
-                            ),
-                          )}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
+          <div className="grid gap-4 xl:grid-cols-2">
+            <EquipmentStatusChart data={metrics?.charts.equipmentStatus ?? []} />
+            <IssueTrendsChart data={metrics?.charts.issueTrends ?? []} />
+            <div className="xl:col-span-2">
+              <AppointmentsBarChart data={metrics?.charts.appointmentsPerDay ?? []} />
             </div>
           </div>
         </SectionPanel>
 
         <SectionPanel
-          eyebrow="Trends"
+          eyebrow="AI insights"
           title="What the team should watch next"
-          description="These trend notes keep the dashboard useful even before advanced analytics and AI insights are fully integrated."
+          description="Concise AI-generated observations based on issue patterns, equipment demand, and appointment behavior."
         >
-          <div className="space-y-3">
-            {[
-              {
-                title: "Appointment response queue",
-                text: "Pending appointments are surfaced as the fastest operational follow-up for admin teams.",
-              },
-              {
-                title: "Resource pressure",
-                text: "Available equipment is separated from total stock so shortage signals are immediately visible.",
-              },
-              {
-                title: "Issue resolution lane",
-                text: "Open issues stay visible beside charts to keep public-facing problems part of the daily workflow.",
-              },
-            ].map((item) => (
-              <article key={item.title} className="rounded-[22px] border border-[var(--border)] bg-[rgba(16,35,27,0.03)] p-4">
-                <h3 className="text-base font-semibold text-[var(--foreground)]">{item.title}</h3>
-                <p className="mt-2 text-sm leading-7 text-[var(--muted)]">{item.text}</p>
-              </article>
-            ))}
+          <div className="space-y-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-[var(--muted)]">
+                Refresh to regenerate the latest insights from current hospital activity.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  if (token && user?.linkedHospitalId) {
+                    void loadInsights(user.linkedHospitalId, token);
+                  }
+                }}
+                disabled={isInsightsLoading || !token || !user?.linkedHospitalId}
+                className="btn-secondary btn-sm self-start"
+              >
+                <RefreshCcw className={`h-4 w-4 ${isInsightsLoading ? "animate-spin" : ""}`} />
+                Refresh
+              </button>
+            </div>
+
+            {insightsError ? (
+              <div className="rounded-[22px] border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+                {insightsError}
+              </div>
+            ) : null}
+
+            <div className="space-y-3">
+              {(insights.length
+                ? insights
+                : [
+                    {
+                      id: "fallback-appointments",
+                      title: "Appointment response queue",
+                      insight: `${metrics?.summary.pendingAppointments ?? 0} appointments are still pending confirmation and are the fastest operational follow-up for the admin team.`,
+                    },
+                    {
+                      id: "fallback-equipment",
+                      title: "Resource pressure",
+                      insight:
+                        metrics?.charts.mostUsedEquipmentTypes[0]
+                          ? `${metrics.charts.mostUsedEquipmentTypes[0].type} is currently the most represented equipment type in tracked inventory.`
+                          : "Available equipment is separated from total stock so shortage signals are immediately visible.",
+                    },
+                    {
+                      id: "fallback-issues",
+                      title: "Issue resolution lane",
+                      insight:
+                        metrics?.charts.topIssueTypes[0]
+                          ? `${metrics.charts.topIssueTypes[0].issueType} is the most frequent issue category right now, which helps the team focus recurring pain points quickly.`
+                          : "Open issues stay visible beside charts to keep public-facing problems part of the daily workflow.",
+                    },
+                  ]
+              ).map((item) => (
+                <article key={item.id} className="rounded-[22px] border border-[var(--border)] bg-[rgba(16,35,27,0.03)] p-4 sm:p-5">
+                  <h3 className="text-base font-semibold text-[var(--foreground)]">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-7 text-[var(--muted)]">{item.insight}</p>
+                </article>
+              ))}
+            </div>
           </div>
         </SectionPanel>
       </div>

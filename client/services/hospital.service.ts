@@ -71,5 +71,6 @@ export const hospitalService = {
     apiClient.post<SemanticHospitalSearchResult[], SemanticHospitalSearchPayload>(
       "/api/hospitals/search/semantic",
       payload,
+      { cache: "no-store" },
     ),
 };

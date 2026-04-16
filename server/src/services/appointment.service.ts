@@ -177,6 +177,7 @@ export const getAppointments = async (filters: AppointmentFilters): Promise<Appo
 
   const [appointments, total] = await Promise.all([
     Appointment.find(query)
+      .select("-__v")
       .populate(APPOINTMENT_POPULATE)
       .sort(sort)
       .skip(skip)
@@ -240,6 +241,7 @@ export const createAppointment = async (payload: CreateAppointmentPayload): Prom
   });
 
   const created = await Appointment.findById(appointment._id).populate(APPOINTMENT_POPULATE).lean();
+  emitAppointmentUpdated(created);
   return created as IAppointment;
 };
 

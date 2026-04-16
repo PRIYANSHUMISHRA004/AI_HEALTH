@@ -28,5 +28,7 @@ const doctorSchema = new Schema<IDoctor, DoctorModel>(
 
 doctorSchema.index({ hospitalId: 1, specialization: 1 });
 doctorSchema.index({ hospitalId: 1, department: 1 });
+doctorSchema.index({ hospitalId: 1, name: 1 });
+doctorSchema.index({ availability: 1, hospitalId: 1 });
 
 export const Doctor = model<IDoctor, DoctorModel>("Doctor", doctorSchema);

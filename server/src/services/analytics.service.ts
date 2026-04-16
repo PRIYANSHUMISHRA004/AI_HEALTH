@@ -32,6 +32,11 @@ interface TrendPoint {
   count: number;
 }
 
+interface AnalyticsSummary {
+  total: number;
+  statusDistribution: DistributionItem[];
+}
+
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
 const toDayKey = (date: Date): string => date.toISOString().slice(0, 10);
@@ -64,6 +69,9 @@ const normalizeTrend = (
   return points;
 };
 
+const sliceRecentTrend = (points: TrendPoint[], days: number): TrendPoint[] =>
+  points.slice(Math.max(0, points.length - days));
+
 const buildTrendPipeline = (
   hospitalId: Types.ObjectId,
   dateField: string,
@@ -87,6 +95,26 @@ const buildTrendPipeline = (
     },
   },
   { $sort: { _id: 1 } },
+];
+
+const buildStatusSummaryPipeline = (hospitalId: Types.ObjectId): PipelineStage[] => [
+  { $match: { hospitalId } },
+  {
+    $facet: {
+      totals: [{ $count: "count" }],
+      statusDistribution: [
+        { $group: { _id: "$status", count: { $sum: 1 } } },
+        { $project: { _id: 0, label: "$_id", count: 1 } },
+        { $sort: { label: 1 } },
+      ],
+    },
+  },
+  {
+    $project: {
+      total: { $ifNull: [{ $arrayElemAt: ["$totals.count", 0] }, 0] },
+      statusDistribution: 1,
+    },
+  },
 ];
 
 const resolveAnalyticsScope = async ({
@@ -137,9 +165,7 @@ export const getAnalyticsOverview = async (scopeInput: AnalyticsScopeInput) => {
     equipmentStatus,
     appointmentStatus,
     issueStatus,
-    last7AppointmentsRaw,
     last30AppointmentsRaw,
-    last7IssuesRaw,
     last30IssuesRaw,
   ] = await Promise.all([
     Doctor.countDocuments({ hospitalId: scope.hospitalId }),
@@ -167,18 +193,15 @@ export const getAnalyticsOverview = async (scopeInput: AnalyticsScopeInput) => {
       { $sort: { label: 1 } },
     ]),
     Appointment.aggregate<{ _id: string; count: number }>(
-      buildTrendPipeline(scope.hospitalId, "appointmentDate", 7)
-    ),
-    Appointment.aggregate<{ _id: string; count: number }>(
       buildTrendPipeline(scope.hospitalId, "appointmentDate", 30)
-    ),
-    Issue.aggregate<{ _id: string; count: number }>(
-      buildTrendPipeline(scope.hospitalId, "createdAt", 7)
     ),
     Issue.aggregate<{ _id: string; count: number }>(
       buildTrendPipeline(scope.hospitalId, "createdAt", 30)
     ),
   ]);
+
+  const appointmentLast30Days = normalizeTrend(last30AppointmentsRaw, 30);
+  const issueLast30Days = normalizeTrend(last30IssuesRaw, 30);
 
   return {
     hospital: {
@@ -200,12 +223,12 @@ export const getAnalyticsOverview = async (scopeInput: AnalyticsScopeInput) => {
     },
     trends: {
       appointments: {
-        last7Days: normalizeTrend(last7AppointmentsRaw, 7),
-        last30Days: normalizeTrend(last30AppointmentsRaw, 30),
+        last7Days: sliceRecentTrend(appointmentLast30Days, 7),
+        last30Days: appointmentLast30Days,
       },
       issues: {
-        last7Days: normalizeTrend(last7IssuesRaw, 7),
-        last30Days: normalizeTrend(last30IssuesRaw, 30),
+        last7Days: sliceRecentTrend(issueLast30Days, 7),
+        last30Days: issueLast30Days,
       },
     },
   };
@@ -245,14 +268,10 @@ export const getEquipmentAnalytics = async (scopeInput: AnalyticsScopeInput) => 
     },
   ]);
 
-  const [last7Raw, last30Raw] = await Promise.all([
-    Equipment.aggregate<{ _id: string; count: number }>(
-      buildTrendPipeline(scope.hospitalId, "createdAt", 7)
-    ),
-    Equipment.aggregate<{ _id: string; count: number }>(
-      buildTrendPipeline(scope.hospitalId, "createdAt", 30)
-    ),
-  ]);
+  const last30Raw = await Equipment.aggregate<{ _id: string; count: number }>(
+    buildTrendPipeline(scope.hospitalId, "createdAt", 30)
+  );
+  const last30Days = normalizeTrend(last30Raw, 30);
 
   return {
     hospital: {
@@ -265,8 +284,8 @@ export const getEquipmentAnalytics = async (scopeInput: AnalyticsScopeInput) => 
     statusDistribution: summary?.statusDistribution ?? [],
     mostUsedEquipmentTypes: summary?.topTypes ?? [],
     trends: {
-      last7Days: normalizeTrend(last7Raw, 7),
-      last30Days: normalizeTrend(last30Raw, 30),
+      last7Days: sliceRecentTrend(last30Days, 7),
+      last30Days,
     },
   };
 };
@@ -305,14 +324,10 @@ export const getIssueAnalytics = async (scopeInput: AnalyticsScopeInput) => {
     },
   ]);
 
-  const [last7Raw, last30Raw] = await Promise.all([
-    Issue.aggregate<{ _id: string; count: number }>(
-      buildTrendPipeline(scope.hospitalId, "createdAt", 7)
-    ),
-    Issue.aggregate<{ _id: string; count: number }>(
-      buildTrendPipeline(scope.hospitalId, "createdAt", 30)
-    ),
-  ]);
+  const last30Raw = await Issue.aggregate<{ _id: string; count: number }>(
+    buildTrendPipeline(scope.hospitalId, "createdAt", 30)
+  );
+  const last30Days = normalizeTrend(last30Raw, 30);
 
   return {
     hospital: {
@@ -325,8 +340,8 @@ export const getIssueAnalytics = async (scopeInput: AnalyticsScopeInput) => {
     statusDistribution: summary?.statusDistribution ?? [],
     topIssueTypes: summary?.topIssueTypes ?? [],
     trends: {
-      last7Days: normalizeTrend(last7Raw, 7),
-      last30Days: normalizeTrend(last30Raw, 30),
+      last7Days: sliceRecentTrend(last30Days, 7),
+      last30Days,
     },
   };
 };
@@ -334,37 +349,14 @@ export const getIssueAnalytics = async (scopeInput: AnalyticsScopeInput) => {
 export const getAppointmentAnalytics = async (scopeInput: AnalyticsScopeInput) => {
   const scope = await resolveAnalyticsScope(scopeInput);
 
-  const [summary] = await Appointment.aggregate<{
-    total: number;
-    statusDistribution: DistributionItem[];
-  }>([
-    { $match: { hospitalId: scope.hospitalId } },
-    {
-      $facet: {
-        totals: [{ $count: "count" }],
-        statusDistribution: [
-          { $group: { _id: "$status", count: { $sum: 1 } } },
-          { $project: { _id: 0, label: "$_id", count: 1 } },
-          { $sort: { label: 1 } },
-        ],
-      },
-    },
-    {
-      $project: {
-        total: { $ifNull: [{ $arrayElemAt: ["$totals.count", 0] }, 0] },
-        statusDistribution: 1,
-      },
-    },
-  ]);
+  const [summary] = await Appointment.aggregate<AnalyticsSummary>(
+    buildStatusSummaryPipeline(scope.hospitalId)
+  );
 
-  const [last7Raw, last30Raw] = await Promise.all([
-    Appointment.aggregate<{ _id: string; count: number }>(
-      buildTrendPipeline(scope.hospitalId, "appointmentDate", 7)
-    ),
-    Appointment.aggregate<{ _id: string; count: number }>(
-      buildTrendPipeline(scope.hospitalId, "appointmentDate", 30)
-    ),
-  ]);
+  const last30Raw = await Appointment.aggregate<{ _id: string; count: number }>(
+    buildTrendPipeline(scope.hospitalId, "appointmentDate", 30)
+  );
+  const last30Days = normalizeTrend(last30Raw, 30);
 
   return {
     hospital: {
@@ -376,8 +368,8 @@ export const getAppointmentAnalytics = async (scopeInput: AnalyticsScopeInput) =
     },
     statusDistribution: summary?.statusDistribution ?? [],
     trends: {
-      last7Days: normalizeTrend(last7Raw, 7),
-      last30Days: normalizeTrend(last30Raw, 30),
+      last7Days: sliceRecentTrend(last30Days, 7),
+      last30Days,
     },
   };
 };

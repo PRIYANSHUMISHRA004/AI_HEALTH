@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { HeartPulse, Menu, Stethoscope, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { EmergencyLauncher } from "@/components/emergency/emergency-launcher";
+import { NotificationBell } from "@/components/notifications/notification-bell";
+import { GlobalSearch } from "@/components/search/global-search";
 
 const links = [
   { href: "#platform-overview", label: "Platform" },
@@ -40,7 +43,7 @@ export function PublicNavbar() {
             : "border-transparent bg-white/72 backdrop-blur-md",
         )}
       >
-        <div className="flex items-center justify-between px-6 py-4 sm:px-8 lg:px-10">
+        <div className="flex flex-wrap items-center gap-4 px-6 py-4 sm:px-8 lg:px-10">
         <a href="/" className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--foreground)] text-white shadow-lg">
             <HeartPulse className="h-5 w-5" />
@@ -51,7 +54,11 @@ export function PublicNavbar() {
           </div>
         </a>
 
-          <nav className="hidden items-center gap-7 md:flex">
+          <div className="order-3 w-full lg:order-none lg:flex-1 lg:px-4">
+            <GlobalSearch />
+          </div>
+
+          <nav className="hidden items-center gap-7 xl:flex">
           {links.map((link) => (
             <a
               key={link.label}
@@ -63,7 +70,9 @@ export function PublicNavbar() {
           ))}
         </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-3">
+            <EmergencyLauncher compact />
+            <NotificationBell />
             <a
               href="/login"
               className="hidden items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] md:inline-flex"
@@ -85,6 +94,12 @@ export function PublicNavbar() {
 
         {isMenuOpen ? (
           <div className="border-t border-[var(--border)] px-6 py-4 md:hidden">
+            <div className="mb-4">
+              <GlobalSearch compact />
+            </div>
+            <div className="mb-4">
+              <EmergencyLauncher compact />
+            </div>
             <nav className="flex flex-col gap-3">
               {links.map((link) => (
                 <a

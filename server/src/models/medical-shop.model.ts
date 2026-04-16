@@ -47,6 +47,7 @@ const medicalShopSchema = new Schema<IMedicalShop, MedicalShopModel>(
 
 medicalShopSchema.index({ area: 1, city: 1, state: 1 });
 medicalShopSchema.index({ city: 1, state: 1 });
+medicalShopSchema.index({ name: 1 });
 medicalShopSchema.index({ availableMedicines: 1 });
 medicalShopSchema.index({ "location.lat": 1, "location.lng": 1 });
 

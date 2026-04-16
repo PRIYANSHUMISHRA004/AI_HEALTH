@@ -1,4 +1,5 @@
 export * from "@/services/ai.service";
+export * from "@/services/analytics.service";
 export * from "@/services/auth.service";
 export * from "@/services/ambulance.service";
 export * from "@/services/appointment.service";
@@ -10,3 +11,4 @@ export * from "@/services/hospital.service";
 export * from "@/services/issue.service";
 export * from "@/services/medical-shop.service";
 export * from "@/services/review.service";
+export * from "@/services/search.service";

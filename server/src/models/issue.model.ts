@@ -44,5 +44,7 @@ const issueSchema = new Schema<IIssue, IssueModel>(
 
 issueSchema.index({ status: 1, issueType: 1, createdAt: -1 });
 issueSchema.index({ hospitalId: 1, status: 1, createdAt: -1 });
+issueSchema.index({ hospitalId: 1, issueType: 1, createdAt: -1 });
+issueSchema.index({ hospitalId: 1, status: 1, issueType: 1, createdAt: -1 });
 
 export const Issue = model<IIssue, IssueModel>("Issue", issueSchema);
