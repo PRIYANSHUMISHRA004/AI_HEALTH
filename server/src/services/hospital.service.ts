@@ -120,6 +120,9 @@ export const getHospitals = async (filters: HospitalFilters): Promise<HospitalLi
       { name: { $regex: searchRegex } },
       { description: { $regex: searchRegex } },
       { address: { $regex: searchRegex } },
+      { specialties: { $regex: searchRegex } },
+      { facilities: { $regex: searchRegex } },
+      { departments: { $regex: searchRegex } },
     ];
   }
 

@@ -7,6 +7,7 @@ export * from "@/services/chat.service";
 export * from "@/services/doctor.service";
 export * from "@/services/dashboard.service";
 export * from "@/services/equipment.service";
+export * from "@/services/equipment-request.service";
 export * from "@/services/hospital.service";
 export * from "@/services/issue.service";
 export * from "@/services/medical-shop.service";

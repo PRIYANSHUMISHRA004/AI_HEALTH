@@ -27,6 +27,7 @@ export const EquipmentStatusChart = memo(function EquipmentStatusChart({ data }:
         <EmptyState
           title="No equipment analytics yet"
           description="Equipment status distribution will appear once equipment records are available."
+          compact
         />
       </ChartCard>
     );

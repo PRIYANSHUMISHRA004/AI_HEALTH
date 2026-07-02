@@ -6,8 +6,8 @@ import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "CareBridge AI",
-  description: "AI-Powered Hospital & Equipment Management and Coordination Platform",
+  title: "SwasthSetu",
+  description: "AI-Powered Hospital & Equipment Management for Patient Care Coordination",
 };
 
 export default function RootLayout({

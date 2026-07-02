@@ -64,5 +64,6 @@ export function useAuth() {
     isHydrated,
     logout,
     syncCurrentUser,
+    updateUser,
   };
 }

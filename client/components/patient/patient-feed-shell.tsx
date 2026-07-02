@@ -1,5 +1,6 @@
 "use client";
 
+import type { Route } from "next";
 import Link from "next/link";
 import { useState } from "react";
 import {
@@ -111,7 +112,15 @@ const quickActions = [
     text: "text-purple-700",
     iconBg: "bg-purple-600",
   },
-];
+] as const satisfies ReadonlyArray<{
+  href: Route;
+  label: string;
+  description: string;
+  icon: React.ElementType;
+  bg: string;
+  text: string;
+  iconBg: string;
+}>;
 
 /* ------------------------------------------------------------------ */
 /* Stats strip                                                            */
@@ -189,7 +198,12 @@ const exploreLinks = [
   { href: "/hospitals", label: "Browse Hospitals", icon: Hospital, desc: "View all healthcare facilities" },
   { href: "/map", label: "View on Map", icon: Map, desc: "Find hospitals near you" },
   { href: "/activity", label: "My Activity", icon: Activity, desc: "Track your history" },
-];
+] as const satisfies ReadonlyArray<{
+  href: Route;
+  label: string;
+  icon: React.ElementType;
+  desc: string;
+}>;
 
 function ExplorePanel() {
   return (
@@ -231,7 +245,12 @@ const trendingTypes = [
   { label: "Public Help Requests", href: "/issues?issueType=public-help", icon: Users, count: "Most active" },
   { label: "Equipment Shortages", href: "/issues?issueType=equipment-shortage", icon: Zap, count: "Urgent" },
   { label: "Ambulance Requests", href: "/issues?issueType=ambulance-request", icon: Ambulance, count: "Critical" },
-];
+] as const satisfies ReadonlyArray<{
+  href: Route;
+  label: string;
+  icon: React.ElementType;
+  count: string;
+}>;
 
 function TrendingPanel() {
   return (
@@ -278,7 +297,7 @@ function AiPanel() {
         </div>
         <div>
           <p className="text-sm font-semibold text-[var(--primary)]">AI Health Assistant</p>
-          <p className="text-xs text-[var(--muted)]">Powered by CareBridge AI</p>
+          <p className="text-xs text-[var(--muted)]">Powered by Swasth Setu</p>
         </div>
       </div>
       <p className="text-xs leading-relaxed text-[var(--muted)]">

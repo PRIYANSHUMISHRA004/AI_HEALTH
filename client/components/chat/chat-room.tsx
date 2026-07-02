@@ -105,8 +105,16 @@ export function ChatRoom({ title, description, defaultRoomId, allowedRoles }: Ch
       return;
     }
 
-    connect();
-    socket.emit("chat:join", { chatRoomId: chatRoomId.trim() });
+    const onConnect = () => {
+      console.log("[chat] Socket connected, joining room:", chatRoomId.trim());
+      socket.emit("chat:join", { chatRoomId: chatRoomId.trim() });
+    };
+
+    if (socket.connected) {
+      onConnect();
+    } else {
+      connect();
+    }
 
     const handleMessage = (payload: IncomingSocketMessage) => {
       if (!payload || typeof payload !== "object") {
@@ -119,20 +127,20 @@ export function ChatRoom({ title, description, defaultRoomId, allowedRoles }: Ch
 
       setMessages((current) => {
         const typedPayload = payload as ChatMessage;
-
         const existingId = "id" in typedPayload ? typedPayload.id : undefined;
         if (existingId && current.some((item) => item.id === existingId)) {
           return current;
         }
-
         return [...current, typedPayload];
       });
     };
 
+    socket.on("connect", onConnect);
     socket.on("chat:message", handleMessage);
 
     return () => {
       socket.emit("chat:leave", { chatRoomId: chatRoomId.trim() });
+      socket.off("connect", onConnect);
       socket.off("chat:message", handleMessage);
     };
   }, [chatRoomId, connect, socket]);

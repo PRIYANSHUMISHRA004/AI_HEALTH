@@ -7,7 +7,10 @@ export type NotificationType =
   | "issue_resolved"
   | "new_appointment"
   | "chat_message"
-  | "equipment_update";
+  | "equipment_update"
+  | "equipment_request_new"
+  | "equipment_request_approved"
+  | "equipment_request_rejected";
 
 export interface AppNotification {
   id: string;

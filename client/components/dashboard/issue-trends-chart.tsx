@@ -24,6 +24,7 @@ export const IssueTrendsChart = memo(function IssueTrendsChart({ data }: IssueTr
         <EmptyState
           title="No issue trend yet"
           description="Issue trend data will appear once issues are created for this hospital."
+          compact
         />
       </ChartCard>
     );

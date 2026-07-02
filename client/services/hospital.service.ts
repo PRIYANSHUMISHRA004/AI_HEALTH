@@ -2,6 +2,7 @@ import { apiClient } from "@/lib/api";
 import type { Hospital } from "@/types";
 
 export interface HospitalListFilters {
+  search?: string;
   city?: string;
   state?: string;
   availabilityStatus?: "free" | "busy";
@@ -39,6 +40,7 @@ export interface SemanticHospitalSearchResult {
 const createQueryString = (filters: HospitalListFilters) => {
   const params = new URLSearchParams();
 
+  if (filters.search) params.set("search", filters.search);
   if (filters.city) params.set("city", filters.city);
   if (filters.state) params.set("state", filters.state);
   if (filters.availabilityStatus) params.set("availabilityStatus", filters.availabilityStatus);

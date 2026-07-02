@@ -14,18 +14,25 @@ export const initSockets = (httpServer: HttpServer): Server => {
 
   io = new Server(httpServer, {
     cors: {
-      origin: "*",
+      origin: true, // Echoes the request origin
+      credentials: true,
       methods: ["GET", "POST", "PATCH", "DELETE"],
     },
+    transports: ["websocket", "polling"],
+    allowEIO3: true, // For compatibility
+    pingTimeout: 60000,
+    pingInterval: 25000,
   });
 
   io.on("connection", (socket) => {
+    console.log(`[socket] Client connected: ${socket.id} (${socket.handshake.address})`);
+
     registerChatSocket(io as Server, socket);
     registerIssueSocket(io as Server, socket);
     registerEquipmentSocket(io as Server, socket);
 
-    socket.on("disconnect", () => {
-      // noop
+    socket.on("disconnect", (reason) => {
+      console.log(`[socket] Client disconnected: ${socket.id}. Reason: ${reason}`);
     });
   });
 

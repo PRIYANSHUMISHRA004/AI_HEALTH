@@ -56,7 +56,7 @@ export function PatientSidebar() {
           <HeartPulse className="h-5 w-5" />
         </div>
         <div>
-          <p className="text-sm font-semibold tracking-tight text-[var(--foreground)]">CareBridge AI</p>
+          <p className="text-sm font-semibold tracking-tight text-[var(--foreground)]">Swasth Setu</p>
           <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--muted)]">Patient Portal</p>
         </div>
       </div>
@@ -141,7 +141,7 @@ export function PatientSidebar() {
           <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[var(--foreground)] text-white">
             <HeartPulse className="h-4 w-4" />
           </div>
-          <span className="text-sm font-semibold text-[var(--foreground)]">CareBridge AI</span>
+          <span className="text-sm font-semibold text-[var(--foreground)]">Swasth Setu</span>
         </div>
         <button
           type="button"

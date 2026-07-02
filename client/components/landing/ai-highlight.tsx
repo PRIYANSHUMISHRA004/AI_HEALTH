@@ -1,6 +1,7 @@
 import { BrainCircuit, SearchCheck, Sparkles } from "lucide-react";
 
 import { FadeIn } from "@/components/motion/fade-in";
+import { InteractiveCard } from "@/components/motion/interactive-card";
 
 const aiItems = [
   {
@@ -23,28 +24,30 @@ const aiItems = [
 export function AiHighlight() {
   return (
     <FadeIn>
-      <div className="rounded-[32px] border border-[var(--border)] bg-[linear-gradient(135deg,rgba(10,32,28,0.98),rgba(15,118,110,0.95))] p-8 text-white shadow-[var(--shadow)]">
+      <div className="rounded-[24px] border border-[var(--border)] bg-white p-5 shadow-sm sm:rounded-[32px] sm:p-8">
         <div className="max-w-2xl">
-          <p className="text-sm font-medium uppercase tracking-[0.24em] text-teal-200">AI features highlight</p>
-          <h3 className="mt-4 text-3xl font-semibold tracking-tight">Helpful AI where it matters most</h3>
-          <p className="mt-4 text-sm leading-8 text-white/78">
+          <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--primary)] sm:text-sm sm:tracking-[0.24em]">AI features highlight</p>
+          <h3 className="mt-3 text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:mt-4 sm:text-3xl">Helpful AI where it matters most</h3>
+          <p className="mt-3 text-sm leading-7 text-[var(--muted)] sm:mt-4 sm:leading-8">
             The platform uses AI to improve discovery, summarization, and assistance, but the product
             remains usable even if AI services are unavailable during the hackathon demo.
           </p>
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
+        <div className="mt-6 grid gap-4 md:mt-8 md:grid-cols-3">
           {aiItems.map((item) => {
             const Icon = item.icon;
 
             return (
-              <div key={item.title} className="rounded-[24px] border border-white/10 bg-white/8 p-5">
-                <div className="inline-flex rounded-2xl bg-white/10 p-3 text-teal-200">
-                  <Icon className="h-5 w-5" />
+              <InteractiveCard key={item.title}>
+                <div className="rounded-[20px] border border-[var(--border)] bg-[var(--background)] p-4 sm:rounded-[24px] sm:p-5">
+                  <div className="inline-flex rounded-2xl bg-[var(--primary-soft)] p-3 text-[var(--primary)]">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <h4 className="mt-4 text-lg font-semibold text-[var(--foreground)]">{item.title}</h4>
+                  <p className="mt-2 text-sm leading-6 text-[var(--muted)] sm:leading-7">{item.description}</p>
                 </div>
-                <h4 className="mt-4 text-lg font-semibold">{item.title}</h4>
-                <p className="mt-2 text-sm leading-7 text-white/72">{item.description}</p>
-              </div>
+              </InteractiveCard>
             );
           })}
         </div>

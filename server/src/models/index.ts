@@ -1,4 +1,5 @@
 export * from "./ambulance.model";
+export * from "./equipment-request.model";
 export * from "./appointment.model";
 export * from "./doctor.model";
 export * from "./equipment.model";

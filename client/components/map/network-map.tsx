@@ -95,6 +95,10 @@ export function NetworkMap({ hospitals, medicalShops }: NetworkMapProps) {
       if (bounds.isValid()) {
         map.fitBounds(bounds.pad(0.15));
       }
+
+      requestAnimationFrame(() => {
+        map.invalidateSize();
+      });
     };
 
     void initMap();
@@ -106,13 +110,31 @@ export function NetworkMap({ hospitals, medicalShops }: NetworkMapProps) {
     };
   }, [hospitals, medicalShops]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      leafletMapRef.current?.invalidateSize();
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   return (
-    <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-      <div className="overflow-hidden rounded-[30px] border border-[var(--border)] bg-white shadow-sm">
-        <div ref={mapRef} className="h-[520px] w-full" />
+    <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+      <div className="min-w-0">
+        <div className="relative isolate overflow-hidden rounded-[28px] border border-[var(--border)] bg-white shadow-sm sm:rounded-[32px]">
+          <div className="border-b border-[var(--border)] px-5 py-4 sm:px-6">
+            <p className="text-sm font-medium uppercase tracking-[0.2em] text-[var(--primary)]">Interactive map</p>
+            <h2 className="mt-1 text-xl font-semibold text-[var(--foreground)] sm:text-2xl">Hospital and pharmacy coverage</h2>
+          </div>
+          <div className="h-[360px] w-full sm:h-[440px] lg:h-[520px]" ref={mapRef} />
+        </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="min-w-0 space-y-4">
         <div className="rounded-[28px] border border-[var(--border)] bg-white/92 p-5 shadow-sm">
           <p className="text-sm font-medium uppercase tracking-[0.2em] text-[var(--primary)]">Map summary</p>
           <h2 className="mt-2 text-2xl font-semibold text-[var(--foreground)]">Network view</h2>

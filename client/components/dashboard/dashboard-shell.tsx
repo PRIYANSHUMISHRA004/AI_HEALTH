@@ -13,14 +13,13 @@ import {
 
 import { getErrorMessage } from "@/lib/utils";
 import { createAsyncState, type AIInsight, type AsyncState } from "@/types";
-import { aiService, getHospitalDashboardMetrics, type HospitalDashboardMetrics } from "@/services";
+import { aiService, clearDashboardCache, getHospitalDashboardMetrics, type HospitalDashboardMetrics } from "@/services";
 import { useAuth } from "@/hooks/use-auth";
 import { AppointmentsBarChart } from "@/components/dashboard/appointments-bar-chart";
 import { EquipmentStatusChart } from "@/components/dashboard/equipment-status-chart";
 import { IssueTrendsChart } from "@/components/dashboard/issue-trends-chart";
 import { SectionPanel } from "@/components/dashboard/section-panel";
 import { SummaryCard } from "@/components/dashboard/summary-card";
-import { ErrorState } from "@/components/ui/error-state";
 
 const summaryConfig = [
   {
@@ -73,6 +72,7 @@ export function DashboardShell() {
   const [insights, setInsights] = useState<AIInsight[]>([]);
   const [insightsError, setInsightsError] = useState<string | null>(null);
   const [isInsightsLoading, setIsInsightsLoading] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const loadInsights = useCallback(async (hospitalId: string, accessToken: string) => {
     setIsInsightsLoading(true);
@@ -88,31 +88,28 @@ export function DashboardShell() {
     }
   }, []);
 
-  useEffect(() => {
+  const loadMetrics = useCallback(() => {
     if (!token) return;
 
-    let isMounted = true;
     const linkedHospitalId = user?.linkedHospitalId;
 
+    clearDashboardCache();
     setState((current) => ({ ...current, isLoading: true, error: null }));
 
-    // Pass linkedHospitalId if available; server will resolve from user record otherwise
     getHospitalDashboardMetrics(linkedHospitalId, token)
       .then((data) => {
-        if (!isMounted) return;
         setState({ data, isLoading: false, error: null });
         const hospitalId = linkedHospitalId ?? data.hospital._id?.toString();
         if (hospitalId) void loadInsights(hospitalId, token);
       })
       .catch((error: unknown) => {
-        if (!isMounted) return;
         setState({ data: null, isLoading: false, error: getErrorMessage(error) });
       });
-
-    return () => {
-      isMounted = false;
-    };
   }, [loadInsights, token, user?.linkedHospitalId]);
+
+  useEffect(() => {
+    loadMetrics();
+  }, [loadMetrics, refreshKey]);
 
   if (state.isLoading && !state.data) {
     return (
@@ -192,6 +189,19 @@ export function DashboardShell() {
         </div>
       </section>
 
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">Summary</p>
+        <button
+          type="button"
+          onClick={() => setRefreshKey((k) => k + 1)}
+          disabled={state.isLoading}
+          className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--muted)] transition hover:border-[var(--primary)] hover:text-[var(--primary)] disabled:opacity-50"
+        >
+          <RefreshCcw className={`h-3.5 w-3.5 ${state.isLoading ? "animate-spin" : ""}`} />
+          Refresh
+        </button>
+      </div>
+
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {summaryConfig.map((item) => (
           <SummaryCard
@@ -205,25 +215,26 @@ export function DashboardShell() {
         ))}
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-[1.3fr_0.9fr]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(320px,0.78fr)] 2xl:grid-cols-[minmax(0,1.58fr)_360px]">
         <SectionPanel
           eyebrow="Charts"
           title="Readiness and demand trends"
           description="Live operational charts fed by the backend analytics endpoints so the dashboard reads clearly during demos and scales into deeper reporting later."
         >
-          <div className="grid gap-4 xl:grid-cols-2">
+          <div className="grid gap-4 lg:grid-cols-2">
             <EquipmentStatusChart data={metrics?.charts.equipmentStatus ?? []} />
             <IssueTrendsChart data={metrics?.charts.issueTrends ?? []} />
-            <div className="xl:col-span-2">
+            <div className="lg:col-span-2">
               <AppointmentsBarChart data={metrics?.charts.appointmentsPerDay ?? []} />
             </div>
           </div>
         </SectionPanel>
 
+        <div className="xl:sticky xl:top-6 xl:self-start">
         <SectionPanel
           eyebrow="AI insights"
-          title="What the team should watch next"
-          description="Concise AI-generated observations based on issue patterns, equipment demand, and appointment behavior."
+          title="What needs attention"
+          description="Concise operational observations based on issue patterns, equipment demand, and appointment behaviour."
         >
           <div className="space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -278,14 +289,15 @@ export function DashboardShell() {
                     },
                   ]
               ).map((item) => (
-                <article key={item.id} className="rounded-[22px] border border-[var(--border)] bg-[rgba(16,35,27,0.03)] p-4 sm:p-5">
-                  <h3 className="text-base font-semibold text-[var(--foreground)]">{item.title}</h3>
+                <article key={item.id} className="rounded-[20px] border border-[var(--border)] bg-[rgba(16,35,27,0.03)] p-4">
+                  <h3 className="text-[15px] font-semibold text-[var(--foreground)] sm:text-base">{item.title}</h3>
                   <p className="mt-2 text-sm leading-7 text-[var(--muted)]">{item.insight}</p>
                 </article>
               ))}
             </div>
           </div>
         </SectionPanel>
+        </div>
       </div>
     </div>
   );

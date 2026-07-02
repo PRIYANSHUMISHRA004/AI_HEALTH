@@ -7,7 +7,11 @@ import { getApiOrigin } from "@/lib/api";
 let socketInstance: Socket | null = null;
 
 function getSocketUrl() {
-  return getApiOrigin();
+  try {
+    return getApiOrigin();
+  } catch {
+    return null;
+  }
 }
 
 export function getSocketClient() {
@@ -16,7 +20,13 @@ export function getSocketClient() {
   }
 
   if (!socketInstance) {
-    socketInstance = io(getSocketUrl(), {
+    const socketUrl = getSocketUrl();
+
+    if (!socketUrl) {
+      return null;
+    }
+
+    socketInstance = io(socketUrl, {
       autoConnect: false,
       transports: ["websocket", "polling"],
       withCredentials: false,

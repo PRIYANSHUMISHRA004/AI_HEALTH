@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { BrainCircuit, LoaderCircle, PhoneCall, Search, Sparkles } from "lucide-react";
 
+import { EquipmentDetailModal } from "@/components/equipment/equipment-detail-modal";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { LoadingState } from "@/components/ui/loading-state";
@@ -55,6 +56,7 @@ export function NetworkSearch() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const [selectedResult, setSelectedResult] = useState<SemanticEquipmentSearchResult | null>(null);
 
   const runSearch = async () => {
     if (!query.trim()) {
@@ -260,6 +262,7 @@ export function NetworkSearch() {
             />
           </div>
         ) : (
+          <>
           <div className="grid gap-4 p-4 sm:p-6 xl:grid-cols-2">
             {results.map((result, index) => {
               const equipment = result.equipment;
@@ -267,7 +270,11 @@ export function NetworkSearch() {
               const hospitalContact = getHospitalContact(result);
 
               return (
-                <article key={`${equipment._id}-${index}`} className="rounded-[28px] border border-[var(--border)] bg-white p-5 shadow-[0_14px_32px_rgba(16,35,27,0.05)]">
+                <article
+                  key={`${equipment._id}-${index}`}
+                  onClick={() => setSelectedResult(result)}
+                  className="cursor-pointer rounded-[28px] border border-[var(--border)] bg-white p-5 shadow-[0_14px_32px_rgba(16,35,27,0.05)] transition hover:border-[var(--primary)] hover:shadow-md"
+                >
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
@@ -284,18 +291,20 @@ export function NetworkSearch() {
                     <p><span className="font-medium text-[var(--foreground)]">Type:</span> {equipment.type}</p>
                     <p><span className="font-medium text-[var(--foreground)]">Section:</span> {equipment.hospitalSection}</p>
                     <p><span className="font-medium text-[var(--foreground)]">Hospital:</span> {getHospitalMeta(result) || "Location not available"}</p>
-                    <p><span className="font-medium text-[var(--foreground)]">Semantic rank:</span> {(result.similarity * 100).toFixed(1)}%</p>
+                    <p><span className="font-medium text-[var(--foreground)]">Semantic match:</span> {(result.similarity * 100).toFixed(1)}%</p>
                   </div>
 
                   <div className="mt-6 flex flex-wrap gap-3">
                     <button
                       type="button"
+                      onClick={(e) => { e.stopPropagation(); setSelectedResult(result); }}
                       className="rounded-full bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--primary-strong)]"
                     >
-                      Request Equipment
+                      View & Request
                     </button>
                     <a
                       href={hospitalContact ? `tel:${hospitalContact}` : "#"}
+                      onClick={(e) => e.stopPropagation()}
                       className={cn(
                         "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition",
                         hospitalContact
@@ -311,6 +320,12 @@ export function NetworkSearch() {
               );
             })}
           </div>
+
+          <EquipmentDetailModal
+            result={selectedResult}
+            onClose={() => setSelectedResult(null)}
+          />
+          </>
         )}
       </section>
     </div>

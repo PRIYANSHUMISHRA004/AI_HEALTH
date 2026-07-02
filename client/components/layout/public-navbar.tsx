@@ -7,28 +7,16 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks";
 import { EmergencyLauncher } from "@/components/emergency/emergency-launcher";
 import { NotificationBell } from "@/components/notifications/notification-bell";
-import { GlobalSearch } from "@/components/search/global-search";
 
 interface NavLink { href: string; label: string }
 
-const publicLinks: NavLink[] = [
-  { href: "#platform-overview", label: "Platform" },
-  { href: "/hospitals", label: "Hospitals" },
-  { href: "/map", label: "Map" },
-];
+const publicLinks: NavLink[] = [];
 
-const guestLinks: NavLink[] = [
-  { href: "/login", label: "Login" },
-  { href: "/register", label: "Register" },
-];
+const guestLinks: NavLink[] = [];
 
-const patientAuthLinks: NavLink[] = [
-  { href: "/patient/feed", label: "My Feed" },
-];
+const patientAuthLinks: NavLink[] = [];
 
-const hospitalAuthLinks: NavLink[] = [
-  { href: "/hospital", label: "Dashboard" },
-];
+const hospitalAuthLinks: NavLink[] = [];
 
 export function PublicNavbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -52,7 +40,7 @@ export function PublicNavbar() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 px-4 pt-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 px-3 pt-3 sm:px-6 sm:pt-4 lg:px-8">
       <div
         className={cn(
           "mx-auto max-w-7xl rounded-[28px] border transition-all duration-300",
@@ -61,20 +49,20 @@ export function PublicNavbar() {
             : "border-transparent bg-white/72 backdrop-blur-md",
         )}
       >
-        <div className="flex flex-wrap items-center gap-4 px-6 py-4 sm:px-8 lg:px-10">
-          <a href="/" className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--foreground)] text-white shadow-lg">
+        <div className="flex items-center gap-3 px-4 py-3 sm:flex-wrap sm:gap-4 sm:px-8 sm:py-4 lg:px-10">
+          <a href="/" className="min-w-0 flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--foreground)] text-white shadow-lg sm:h-11 sm:w-11">
               <HeartPulse className="h-5 w-5" />
             </div>
-            <div>
-              <p className="text-base font-semibold tracking-tight text-[var(--foreground)]">CareBridge AI</p>
-              <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted)]">Hospital coordination</p>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold tracking-tight text-[var(--foreground)] sm:text-base">
+                Swasth Setu
+              </p>
+              <p className="hidden text-[11px] uppercase tracking-[0.22em] text-[var(--muted)] sm:block">
+                Hospital coordination
+              </p>
             </div>
           </a>
-
-          <div className="order-3 w-full lg:order-none lg:flex-1 lg:px-4">
-            <GlobalSearch />
-          </div>
 
           <nav className="hidden items-center gap-7 xl:flex">
             {navLinks.map((link) => (
@@ -88,12 +76,14 @@ export function PublicNavbar() {
             ))}
           </nav>
 
-          <div className="ml-auto flex items-center gap-3">
-            <EmergencyLauncher compact />
-            <NotificationBell />
+          <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <div className="hidden sm:block">
+              <EmergencyLauncher compact />
+            </div>
 
             {isHydrated && isAuthenticated ? (
               <div className="hidden items-center gap-2 md:flex">
+                <NotificationBell />
                 <a
                   href={user?.role === "patient" ? "/patient/feed" : "/hospital"}
                   className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)]"
@@ -111,19 +101,28 @@ export function PublicNavbar() {
                 </button>
               </div>
             ) : (
-              <a
-                href="/login"
-                className="hidden items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] md:inline-flex"
-              >
+              <div className="hidden items-center gap-2 md:flex">
+                <a
+                  href="/login"
+                  className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                >
+                  <Stethoscope className="h-4 w-4 text-[var(--primary)]" />
+                  Sign in
+                </a>
+                <a
+                  href="/register"
+                  className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                >
                 <Stethoscope className="h-4 w-4 text-[var(--primary)]" />
-                Sign in
-              </a>
+                  Register
+                </a>
+              </div>
             )}
 
             <button
               type="button"
               onClick={() => setIsMenuOpen((current) => !current)}
-              className="inline-flex rounded-2xl border border-[var(--border)] bg-white p-2 text-[var(--foreground)] md:hidden"
+              className="inline-flex shrink-0 rounded-2xl border border-[var(--border)] bg-white p-2 text-[var(--foreground)] md:hidden"
               aria-label="Toggle navigation"
             >
               {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -132,13 +131,7 @@ export function PublicNavbar() {
         </div>
 
         {isMenuOpen ? (
-          <div className="border-t border-[var(--border)] px-6 py-4 md:hidden">
-            <div className="mb-4">
-              <GlobalSearch compact />
-            </div>
-            <div className="mb-4">
-              <EmergencyLauncher compact />
-            </div>
+          <div className="border-t border-[var(--border)] px-4 py-4 sm:px-6 md:hidden">
             <nav className="flex flex-col gap-3">
               {navLinks.map((link) => (
                 <a
@@ -158,7 +151,24 @@ export function PublicNavbar() {
                 >
                   Logout
                 </button>
-              ) : null}
+              ) : (
+                <div className="flex flex-col gap-2 pt-1">
+                  <a
+                    href="/login"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="rounded-2xl border border-[var(--border)] px-3 py-2 text-center text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                  >
+                    Log in
+                  </a>
+                  <a
+                    href="/register"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="rounded-2xl border border-[var(--border)] px-3 py-2 text-center text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)]"
+                  >
+                    Register
+                  </a>
+                </div>
+              )}
             </nav>
           </div>
         ) : null}

@@ -7,8 +7,8 @@ interface MapFiltersProps {
 
 export function MapFilters({ city = "", state = "" }: MapFiltersProps) {
   return (
-    <div className="rounded-[28px] border border-[var(--border)] bg-white/90 p-5 shadow-sm">
-      <form className="grid gap-4 md:grid-cols-[1fr_1fr_auto]">
+    <div className="rounded-[28px] border border-[var(--border)] bg-white/90 p-5 shadow-sm sm:p-6">
+      <form className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
         <input
           name="city"
           defaultValue={city}
@@ -23,7 +23,7 @@ export function MapFilters({ city = "", state = "" }: MapFiltersProps) {
           className="w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--primary)]"
         />
 
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row lg:self-end">
           <button
             type="submit"
             className="inline-flex flex-1 items-center justify-center rounded-full bg-[var(--primary)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--primary-strong)]"

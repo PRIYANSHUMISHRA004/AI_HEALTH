@@ -38,10 +38,8 @@ export function AuthGuard({
       return;
     }
 
-    if (!user) {
-      void syncCurrentUser();
-    }
-  }, [isHydrated, loginRedirectPath, router, syncCurrentUser, token, user]);
+    void syncCurrentUser();
+  }, [isHydrated, loginRedirectPath, router, syncCurrentUser, token]);
 
   useEffect(() => {
     if (!isHydrated || !user || !allowedRoles?.length) {

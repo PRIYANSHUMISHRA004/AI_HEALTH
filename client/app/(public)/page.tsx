@@ -7,7 +7,7 @@ import { SectionShell } from "@/components/landing/section-shell";
 
 export default function LandingPage() {
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col px-6 pb-24 pt-6 sm:px-8 lg:px-12">
+    <div className="mx-auto flex w-full max-w-7xl flex-col px-4 pb-10 pt-3 sm:px-8 sm:pb-14 sm:pt-5 lg:px-12">
       <HeroSection />
 
       <SectionShell
@@ -36,7 +36,7 @@ export default function LandingPage() {
         <AiHighlight />
       </SectionShell>
 
-      <section className="py-10 sm:py-14">
+      <section className="py-6 sm:py-10">
         <CtaBanner />
       </section>
     </div>

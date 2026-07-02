@@ -30,7 +30,7 @@ export default async function HospitalsPage({ searchParams }: HospitalsPageProps
     city: params.city?.trim() || undefined,
     state: params.state?.trim() || undefined,
     availabilityStatus: params.availabilityStatus || undefined,
-    specialties: search || undefined,
+    search: search || undefined,
     page: currentPage,
     limit: 9,
   });

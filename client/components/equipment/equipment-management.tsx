@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { LoaderCircle, PackagePlus, PencilLine, RotateCcw, Trash2 } from "lucide-react";
+import { Bell, LoaderCircle, PackagePlus, PencilLine, RotateCcw, SendHorizonal, Trash2 } from "lucide-react";
 
+import { BorrowedEquipmentSection } from "@/components/equipment/borrowed-equipment-section";
+import { EquipmentApprovalsModal } from "@/components/equipment/equipment-approvals-modal";
 import { EquipmentFilters } from "@/components/equipment/equipment-filters";
 import { EquipmentFormPanel } from "@/components/equipment/equipment-form-panel";
+import { EquipmentRequestModal } from "@/components/equipment/equipment-request-modal";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { LoadingState } from "@/components/ui/loading-state";
@@ -84,11 +87,13 @@ export function EquipmentManagement() {
   const [editingEquipmentId, setEditingEquipmentId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(initialForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [requestModalOpen, setRequestModalOpen] = useState(false);
+  const [approvalsModalOpen, setApprovalsModalOpen] = useState(false);
 
   const loadEquipment = async () => {
     if (!hospitalId) {
       setEquipment([]);
-      setLoadError("This account is not linked to a hospital yet.");
+      setLoadError("Your account is not linked to a hospital. Go to your profile and add a valid hospital ID to manage equipment.");
       setIsLoading(false);
       return;
     }
@@ -203,9 +208,14 @@ export function EquipmentManagement() {
   };
 
   const handleSave = async () => {
-    if (!token || !hospitalId) {
-      setActionError("You must be logged in as a hospital admin to manage equipment.");
-      toast.error("Equipment action failed", "You must be logged in as a hospital admin to manage equipment.");
+    if (!token) {
+      setActionError("You are not logged in. Please sign in again.");
+      toast.error("Not authenticated", "Please sign in to continue.");
+      return;
+    }
+    if (!hospitalId) {
+      setActionError("Your account is not linked to a hospital. Add a valid hospital ID to your profile first.");
+      toast.error("No hospital linked", "Link your account to a hospital before managing equipment.");
       return;
     }
 
@@ -384,14 +394,38 @@ export function EquipmentManagement() {
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={openCreatePanel}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:bg-teal-50"
-          >
-            <PackagePlus className="h-4 w-4" />
-            Add equipment
-          </button>
+          {hospitalId ? (
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setApprovalsModalOpen(true)}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20"
+              >
+                <Bell className="h-4 w-4" />
+                Approvals
+              </button>
+              <button
+                type="button"
+                onClick={() => setRequestModalOpen(true)}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20"
+              >
+                <SendHorizonal className="h-4 w-4" />
+                Request Equipment
+              </button>
+              <button
+                type="button"
+                onClick={openCreatePanel}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-[var(--foreground)] transition hover:bg-teal-50"
+              >
+                <PackagePlus className="h-4 w-4" />
+                Add Equipment
+              </button>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-amber-300/60 bg-amber-400/20 px-4 py-3 text-sm text-amber-100">
+              Link your account to a hospital to manage equipment.
+            </div>
+          )}
         </div>
       </section>
 
@@ -632,6 +666,8 @@ export function EquipmentManagement() {
         ) : null}
       </section>
 
+      <BorrowedEquipmentSection />
+
       <EquipmentFormPanel
         mode={formMode}
         open={panelOpen}
@@ -642,6 +678,16 @@ export function EquipmentManagement() {
         onSubmit={() => void handleSave()}
         isSubmitting={isSubmitting}
         error={actionError}
+      />
+
+      <EquipmentRequestModal
+        open={requestModalOpen}
+        onClose={() => setRequestModalOpen(false)}
+      />
+
+      <EquipmentApprovalsModal
+        open={approvalsModalOpen}
+        onClose={() => setApprovalsModalOpen(false)}
       />
     </div>
   );

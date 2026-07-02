@@ -40,8 +40,7 @@ const refreshAverageRating = async (
   }
 };
 
-async function run(): Promise<void> {
-  await connectToDatabase();
+export async function seedDemoData(): Promise<void> {
 
   const hospitalExists = await Hospital.exists({ name: SEED_HOSPITAL_NAME });
   const demoUserExists = await User.exists({ email: "patient.demo@hackathon.local" });
@@ -49,7 +48,6 @@ async function run(): Promise<void> {
     console.log(
       "[seed] Skipped: demo data already present (marker hospital or patient.demo@hackathon.local)."
     );
-    await mongoose.disconnect();
     return;
   }
 
@@ -124,6 +122,65 @@ async function run(): Promise<void> {
   });
 
   const hospital2 = await Hospital.create(hospital2Payload);
+
+  // Generate 20 dummy hospitals
+  const generatedCities = ["Pune", "Chennai", "Delhi", "Hyderabad", "Kolkata", "Ahmedabad", "Surat"];
+  const generatedStates = ["Maharashtra", "Tamil Nadu", "Delhi", "Telangana", "West Bengal", "Gujarat", "Gujarat"];
+  for (let i = 1; i <= 20; i++) {
+    const cityIdx = i % generatedCities.length;
+    const dummyPayload = {
+      name: `Dummy Hospital ${i}`,
+      description: `A generated dummy hospital for testing and UI population. Equipped with essential services.`,
+      address: `Street ${i * 10}, Area ${i}`,
+      city: generatedCities[cityIdx],
+      state: generatedStates[cityIdx],
+      pincode: `1000${i.toString().padStart(2, '0')}`,
+      location: { lat: 20 + (i * 0.1), lng: 75 + (i * 0.1) },
+      specialties: ["General Medicine", i % 2 === 0 ? "Pediatrics" : "Orthopedics"],
+      facilities: ["Pharmacy", "Emergency"],
+      departments: ["General", "Emergency"],
+      contactNumber: `+91-80-0000-00${i.toString().padStart(2, '0')}`,
+      emergencyContact: `+91-80-0000-91${i.toString().padStart(2, '0')}`,
+      ambulanceCount: i % 3,
+      averageRating: 0,
+      availabilityStatus: (i % 2 === 0 ? "busy" : "free") as "free" | "busy" | "full",
+      embeddingText: "",
+      embedding: [] as number[],
+    };
+    dummyPayload.embeddingText = buildHospitalEmbeddingText({
+      name: dummyPayload.name,
+      description: dummyPayload.description,
+      address: dummyPayload.address,
+      city: dummyPayload.city,
+      state: dummyPayload.state,
+      specialties: dummyPayload.specialties,
+      facilities: dummyPayload.facilities,
+      departments: dummyPayload.departments,
+    });
+    
+    const newHosp = await Hospital.create(dummyPayload);
+    await refreshAverageRating("hospital", newHosp._id);
+
+    // Create 2 dummy doctors for each hospital
+    await Doctor.create({
+      hospitalId: newHosp._id,
+      name: `Dr. Dummy Alpha ${i}`,
+      specialization: dummyPayload.specialties[0],
+      department: dummyPayload.departments[0],
+      experience: 5 + (i % 10),
+      availability: true,
+      averageRating: 0,
+    });
+    await Doctor.create({
+      hospitalId: newHosp._id,
+      name: `Dr. Dummy Beta ${i}`,
+      specialization: dummyPayload.specialties[1],
+      department: dummyPayload.departments[0],
+      experience: 3 + (i % 8),
+      availability: true,
+      averageRating: 0,
+    });
+  }
 
   const patient = await User.create({
     name: "Ananya Desai",
@@ -325,6 +382,36 @@ async function run(): Promise<void> {
     embedding: [],
   });
 
+  // Generate 20 dummy Medical Shops
+  const shopAreas = ["Viman Nagar", "T Nagar", "Connaught Place", "Banjara Hills", "Salt Lake", "Vastrapur", "Adajan"];
+  for (let i = 1; i <= 20; i++) {
+    const areaIdx = i % generatedCities.length;
+    const shopCity = generatedCities[areaIdx];
+    const shopState = generatedStates[areaIdx];
+    
+    const shopText = buildMedicalShopEmbeddingText({
+      name: `Dummy Pharmacy ${i}`,
+      area: shopAreas[areaIdx],
+      city: shopCity,
+      state: shopState,
+      pincode: `2000${i.toString().padStart(2, '0')}`,
+      availableMedicines: ["Paracetamol", i % 2 === 0 ? "Antibiotics" : "Vitamins", "Bandages"],
+    });
+
+    await MedicalShop.create({
+      name: `Dummy Pharmacy ${i}`,
+      area: shopAreas[areaIdx],
+      city: shopCity,
+      state: shopState,
+      pincode: `2000${i.toString().padStart(2, '0')}`,
+      location: { lat: 21 + (i * 0.1), lng: 76 + (i * 0.1) },
+      contactNumber: `+91-95000-000${i.toString().padStart(2, '0')}`,
+      availableMedicines: ["Paracetamol", i % 2 === 0 ? "Antibiotics" : "Vitamins", "Bandages"],
+      embeddingText: shopText,
+      embedding: [],
+    });
+  }
+
   const inThreeDays = new Date();
   inThreeDays.setDate(inThreeDays.getDate() + 3);
   inThreeDays.setHours(10, 30, 0, 0);
@@ -430,11 +517,15 @@ async function run(): Promise<void> {
   console.log(`  admin (H2):  ${admin2.email}`);
   console.log(`  doctor user: ${doctorUser.email}`);
 
-  await mongoose.disconnect();
 }
 
-run().catch(async (err) => {
-  console.error("[seed] Failed:", err);
-  await mongoose.disconnect().catch(() => undefined);
-  process.exit(1);
-});
+if (require.main === module) {
+  connectToDatabase().then(async () => {
+    await seedDemoData();
+    await mongoose.disconnect();
+  }).catch(async (err) => {
+    console.error("[seed] Failed:", err);
+    await mongoose.disconnect().catch(() => undefined);
+    process.exit(1);
+  });
+}

@@ -26,6 +26,7 @@ export interface RegisterPayload {
   phone: string;
   role: UserRole;
   linkedHospitalId?: string;
+  hospitalName?: string;
 }
 
 export interface AuthResponse {

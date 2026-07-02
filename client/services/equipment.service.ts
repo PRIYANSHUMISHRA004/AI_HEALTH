@@ -82,6 +82,9 @@ const withAuth = (token: string) => ({
 });
 
 export const equipmentService = {
+  getById: (id: string) =>
+    apiClient.get<Equipment>(`/api/equipment/${id}`),
+
   list: async (filters: EquipmentListFilters = {}) => {
     const response = await apiClient.getEnvelope<Equipment[]>(
       `/api/equipment${createQueryString(filters)}`,

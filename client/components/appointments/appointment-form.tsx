@@ -273,6 +273,7 @@ export function AppointmentForm({ initialHospitalId = "", initialDoctorId = "" }
                   <input
                     id="appointmentDate"
                     type="datetime-local"
+                    min={new Date().toISOString().slice(0, 16)}
                     value={form.appointmentDate}
                     onChange={(event) =>
                       setForm((current) => ({ ...current, appointmentDate: event.target.value }))
@@ -305,28 +306,36 @@ export function AppointmentForm({ initialHospitalId = "", initialDoctorId = "" }
                   </div>
                 ) : null}
 
-                <button
-                  type="submit"
-                  disabled={
-                    isSubmitting ||
-                    hospitalsLoading ||
-                    doctorsLoading ||
-                    !form.hospitalId ||
-                    !form.doctorId ||
-                    !form.caseSummary.trim() ||
-                    !form.appointmentDate
-                  }
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[var(--primary-strong)] disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <LoaderCircle className="h-4 w-4 animate-spin" />
-                      Booking appointment...
-                    </>
-                  ) : (
-                    "Book Appointment"
+                <div className="flex flex-col gap-3">
+                  <button
+                    type="submit"
+                    disabled={
+                      isSubmitting ||
+                      hospitalsLoading ||
+                      doctorsLoading ||
+                      !form.hospitalId ||
+                      !form.doctorId ||
+                      !form.caseSummary.trim() ||
+                      !form.appointmentDate
+                    }
+                    className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[var(--primary-strong)] disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <LoaderCircle className="h-4 w-4 animate-spin" />
+                        Booking appointment...
+                      </>
+                    ) : (
+                      "Book Appointment"
+                    )}
+                  </button>
+
+                  {!isSubmitting && (!form.hospitalId || !form.doctorId || !form.caseSummary.trim() || !form.appointmentDate) && (
+                    <p className="text-center text-xs text-[var(--muted)]">
+                      Please select a hospital, a doctor, and enter a case summary and valid future date to enable booking.
+                    </p>
                   )}
-                </button>
+                </div>
               </form>
             </div>
           </section>

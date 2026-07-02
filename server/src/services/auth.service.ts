@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { Types, isValidObjectId } from "mongoose";
 
-import { USER_ROLES, User, UserRole } from "../models";
+import { Hospital, USER_ROLES, User, UserRole } from "../models";
 import { HttpError } from "../utils/http-error";
 import { generateAccessToken } from "../utils/jwt";
 
@@ -12,6 +12,7 @@ interface RegisterPayload {
   phone?: string;
   role?: string;
   linkedHospitalId?: string;
+  hospitalName?: string;
 }
 
 interface LoginPayload {
@@ -54,7 +55,7 @@ const sanitizeUser = (user: UserLike): SafeUser => ({
 });
 
 export const registerUser = async (payload: RegisterPayload): Promise<AuthSuccessResponse> => {
-  const { name, email, password, phone, role, linkedHospitalId } = payload;
+  const { name, email, password, phone, role, linkedHospitalId, hospitalName } = payload;
 
   if (!name || !email || !password || !phone || !role) {
     throw new HttpError(400, "name, email, password, phone and role are required");
@@ -90,7 +91,27 @@ export const registerUser = async (payload: RegisterPayload): Promise<AuthSucces
   }
 
   let parsedHospitalId: Types.ObjectId | undefined;
-  if (linkedHospitalId) {
+
+  // For hospital_admin: auto-create a hospital from hospitalName
+  if (role === "hospital_admin" && hospitalName?.trim()) {
+    const trimmedHospitalName = hospitalName.trim();
+    const newHospital = await Hospital.create({
+      name: trimmedHospitalName,
+      description: `${trimmedHospitalName} - registered via admin signup`,
+      address: "To be updated",
+      city: "To be updated",
+      state: "To be updated",
+      pincode: "000000",
+      location: { lat: 0, lng: 0 },
+      contactNumber: trimmedPhone,
+      emergencyContact: trimmedPhone,
+      ambulanceCount: 0,
+      availabilityStatus: "free",
+      embeddingText: trimmedHospitalName,
+    });
+    parsedHospitalId = newHospital._id as Types.ObjectId;
+  } else if (linkedHospitalId) {
+    // For doctor: link to existing hospital by ID
     if (!isValidObjectId(linkedHospitalId)) {
       throw new HttpError(400, "Invalid linkedHospitalId");
     }
@@ -158,6 +179,33 @@ export const loginUser = async (payload: LoginPayload): Promise<AuthSuccessRespo
     token,
     user: sanitizeUser(user.toObject()),
   };
+};
+
+export const updateUserProfile = async (
+  userId: string,
+  payload: { name?: string; phone?: string; linkedHospitalId?: string }
+): Promise<SafeUser> => {
+  if (!isValidObjectId(userId)) throw new HttpError(400, "Invalid user id");
+
+  const user = await User.findById(userId);
+  if (!user) throw new HttpError(404, "User not found");
+
+  if (payload.name?.trim()) user.name = payload.name.trim();
+  if (payload.phone?.trim()) user.phone = payload.phone.trim();
+
+  if (payload.linkedHospitalId !== undefined) {
+    if (payload.linkedHospitalId === "") {
+      user.linkedHospitalId = undefined;
+    } else {
+      if (!isValidObjectId(payload.linkedHospitalId)) throw new HttpError(400, "Invalid hospital ID");
+      const exists = await Hospital.exists({ _id: payload.linkedHospitalId });
+      if (!exists) throw new HttpError(404, "Hospital not found");
+      user.linkedHospitalId = new Types.ObjectId(payload.linkedHospitalId);
+    }
+  }
+
+  await user.save();
+  return sanitizeUser(user.toObject());
 };
 
 export const getCurrentUserById = async (userId: string): Promise<AuthSuccessResponse["user"]> => {

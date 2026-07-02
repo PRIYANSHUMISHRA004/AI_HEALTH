@@ -15,6 +15,7 @@ interface DoctorFilters {
   hospitalId?: string;
   specialization?: string;
   department?: string;
+  availability?: string;
   city?: string;
   state?: string;
   page?: string;
@@ -127,6 +128,9 @@ export const getDoctors = async (filters: DoctorFilters): Promise<DoctorListResp
 
   attachRegexFilter(query, "specialization", filters.specialization);
   attachRegexFilter(query, "department", filters.department);
+  if (filters.availability === "true" || filters.availability === "false") {
+    query.availability = filters.availability === "true";
+  }
 
   const [doctors, total] = await Promise.all([
     Doctor.find(query)

@@ -24,6 +24,7 @@ export const AppointmentsBarChart = memo(function AppointmentsBarChart({ data }:
         <EmptyState
           title="No appointment trend yet"
           description="Appointment volume will appear here once bookings are made."
+          compact
         />
       </ChartCard>
     );

@@ -45,6 +45,10 @@ export interface HospitalDashboardMetrics {
 
 const dashboardMetricsRequests = new Map<string, Promise<HospitalDashboardMetrics>>();
 
+export function clearDashboardCache() {
+  dashboardMetricsRequests.clear();
+}
+
 export async function getHospitalDashboardMetrics(
   hospitalId: string | undefined,
   token: string,

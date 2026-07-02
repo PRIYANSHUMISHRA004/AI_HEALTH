@@ -73,7 +73,16 @@ export interface Hospital extends BaseEntity {
 }
 
 export interface Doctor extends BaseEntity {
-  hospitalId: string;
+  hospitalId:
+    | string
+    | {
+        _id?: string;
+        name: string;
+        city?: string;
+        state?: string;
+        contactNumber?: string;
+        availabilityStatus?: HospitalAvailabilityStatus;
+      };
   name: string;
   specialization: string;
   department: string;

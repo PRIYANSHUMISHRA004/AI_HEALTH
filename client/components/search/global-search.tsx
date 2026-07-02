@@ -207,9 +207,11 @@ export function GlobalSearch({ compact = false }: GlobalSearchProps) {
               {results.equipment.length ? (
                 <SearchSection title="Equipment">
                   {results.equipment.map((item) => (
-                    <div
+                    <a
                       key={item._id ?? `${item.name}-${item.type}`}
-                      className="rounded-[18px] border border-[var(--border)] bg-[rgba(16,35,27,0.02)] px-4 py-3"
+                      href={item._id ? `/hospital/equipment/${item._id}` : "#"}
+                      onClick={() => setIsOpen(false)}
+                      className="block rounded-[18px] border border-[var(--border)] bg-[rgba(16,35,27,0.02)] px-4 py-3 transition hover:border-[rgba(15,118,110,0.22)] hover:bg-[rgba(15,118,110,0.04)]"
                     >
                       <p className="text-sm font-semibold text-[var(--foreground)]">{item.name}</p>
                       <p className="mt-1 text-xs text-[var(--muted)]">
@@ -217,7 +219,7 @@ export function GlobalSearch({ compact = false }: GlobalSearchProps) {
                           .filter(Boolean)
                           .join(" | ")}
                       </p>
-                    </div>
+                    </a>
                   ))}
                 </SearchSection>
               ) : null}

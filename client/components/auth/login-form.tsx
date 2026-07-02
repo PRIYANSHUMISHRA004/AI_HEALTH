@@ -25,9 +25,6 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
   const [isValidating, setIsValidating] = useState(false);
   const [form, setForm] = useState({ email: "", password: "" });
 
-  // When the store rehydrates with a saved session, validate the token
-  // against the server before redirecting. Stale/expired tokens are cleared
-  // by syncCurrentUser so the login form shows normally.
   useEffect(() => {
     if (!isHydrated || !isAuthenticated) return;
 
@@ -48,7 +45,6 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
       const result = await run(() => authService.login(form));
       setSession(result);
       toast.success("Signed in successfully", "Your account session is ready.");
-      // Redirect based on role, falling back to the prop if role is unknown
       const dest = result.user?.role === "patient" ? "/patient/feed" : result.user?.role ? "/hospital" : redirectTo;
       router.push(dest);
     } catch (submitError) {
@@ -56,15 +52,14 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
     }
   };
 
-  // Show a minimal loading state while the stored token is being validated
   if (isValidating) {
     return (
       <AuthShell
         title="Welcome back"
-        description="Sign in to manage appointments, equipment, ambulances, and coordination workflows."
+        description="Sign in to continue with patient support or hospital operations."
         footer={null}
       >
-        <p className="py-6 text-center text-sm text-[var(--muted)]">Verifying your session…</p>
+        <p className="py-6 text-center text-sm text-[var(--muted)]">Verifying your session...</p>
       </AuthShell>
     );
   }
@@ -72,7 +67,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
   return (
     <AuthShell
       title="Welcome back"
-      description="Sign in to manage appointments, equipment, ambulances, and coordination workflows."
+      description="Sign in to continue with patient support or hospital operations."
       footer={
         <p>
           Don&apos;t have an account?{" "}
@@ -120,7 +115,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
           disabled={isLoading}
           className="inline-flex w-full items-center justify-center rounded-full bg-[var(--primary)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--primary-strong)] disabled:cursor-not-allowed disabled:opacity-70"
         >
-          {isLoading ? "Signing in…" : "Sign in"}
+          {isLoading ? "Signing in..." : "Sign in"}
         </button>
       </form>
     </AuthShell>

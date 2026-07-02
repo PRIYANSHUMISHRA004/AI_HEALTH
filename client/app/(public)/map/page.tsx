@@ -26,10 +26,10 @@ export default async function MapPage({ searchParams }: MapPageProps) {
   ]);
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col px-6 pb-20 pt-10 sm:px-8 lg:px-12">
-      <section className="space-y-8 py-12 sm:py-16">
+    <div className="mx-auto flex w-full max-w-7xl flex-col px-4 pb-18 pt-4 sm:px-8 sm:pb-24 sm:pt-6 lg:px-12">
+      <section className="space-y-6 py-8 sm:space-y-8 sm:py-10 lg:py-12">
         <FadeIn>
-          <div className="flex items-start gap-4">
+          <div className="flex items-start gap-4 rounded-[28px] border border-[var(--border)] bg-white/88 p-5 shadow-sm sm:rounded-[32px] sm:p-7">
             <div className="rounded-2xl bg-[var(--accent-soft)] p-3 text-[var(--accent)]">
               <MapPinned className="h-6 w-6" />
             </div>

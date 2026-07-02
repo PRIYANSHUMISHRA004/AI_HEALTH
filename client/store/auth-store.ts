@@ -46,14 +46,20 @@ export const useAuthStore = create<AuthStore>()(
         }),
     }),
     {
-      name: "carebridge-auth",
+      name: "swasthsetu-auth",
       partialize: ({ user, token, isAuthenticated }) => ({
         user,
         token,
         isAuthenticated,
       }),
       onRehydrateStorage: () => (state) => {
-        state?.setHydrated(true);
+        if (state) {
+          state.setHydrated(true);
+        } else {
+          // If state is null (e.g. hydration failed or empty storage), 
+          // we still need to set hydrated to true to let AuthGuard proceed (to login/logout)
+          useAuthStore.getState().setHydrated(true);
+        }
       },
     },
   ),
